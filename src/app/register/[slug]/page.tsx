@@ -61,6 +61,7 @@ export default function RegistrationPage() {
     name: "",
     email: "",
     phone: "",
+    gender: "",
     collegeId: "",
     customCollege: "",
     teamName: "",
@@ -88,6 +89,7 @@ export default function RegistrationPage() {
         ...prev,
         name: session.user.name || "",
         email: session.user.email || "",
+        gender: (session.user as any).gender || "",
         // We'll trust they update college if needed, or if stored in user profile used here
         // If user profile has collegeId that matches our list, great. 
         collegeId: session.user.collegeId || "",
@@ -137,6 +139,7 @@ export default function RegistrationPage() {
       if (!formData.phone.trim()) newErrors.phone = "Phone is required";
       else if (!/^[6-9]\d{9}$/.test(formData.phone))
         newErrors.phone = "Invalid Indian mobile number (10 digits, starts with 6-9)";
+      if (!formData.gender) newErrors.gender = "Gender is required";
       if (!formData.collegeId) newErrors.collegeId = "College is required";
     }
 
@@ -214,6 +217,7 @@ export default function RegistrationPage() {
         collegeId: formData.collegeId,
         customCollege: formData.customCollege,
         phone: formData.phone,
+        gender: formData.gender,
         payImmediately,
       };
 
@@ -405,6 +409,29 @@ export default function RegistrationPage() {
                 error={validationErrors.email}
                 disabled
               />
+
+              <div>
+                <label className="block text-sm text-[var(--text-secondary)] mb-1">
+                  Gender *
+                </label>
+                <div className="relative">
+                  <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-muted)] pointer-events-none" />
+                  <select
+                    value={formData.gender}
+                    onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                    className="w-full pl-12 pr-4 py-3 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl text-white placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--accent-primary)] appearance-none"
+                  >
+                    <option value="" disabled className="text-gray-500">Select Gender</option>
+                    <option value="MEN">Male</option>
+                    <option value="WOMEN">Female</option>
+                    <option value="MIXED">Other</option>
+                  </select>
+                </div>
+                {validationErrors.gender && (
+                  <p className="text-red-500 text-xs mt-1">{validationErrors.gender}</p>
+                )}
+              </div>
+
               <Input
                 label="Phone Number *"
                 placeholder="10-digit mobile number"

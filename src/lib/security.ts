@@ -59,7 +59,9 @@ export const sportCreationSchema = z.object({
 export const registrationSchema = z.object({
   sportId: z.string().cuid(),
   collegeId: z.string().cuid(),
-  teamName: z.string().min(2).max(50).optional(),
+  customCollege: z.string().optional(),
+  gender: z.enum(["MEN", "WOMEN", "MIXED", "OPEN"]).optional(),
+  teamName: z.string().max(100).optional(),
   teamMembers: z
     .array(
       z.object({

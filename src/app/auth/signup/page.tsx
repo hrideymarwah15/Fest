@@ -5,7 +5,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button, Input, SearchableSelect, Card } from "@/components/ui";
-import { Mail, Lock, User, Phone, ArrowRight, Chrome } from "lucide-react";
+import { Mail, Lock, User, Users, Phone, ArrowRight, Chrome } from "lucide-react";
 import { signIn } from "next-auth/react";
 import northIndiaColleges from "@/data/north_india_colleges.json";
 
@@ -22,6 +22,7 @@ export default function SignUpPage() {
     name: "",
     email: "",
     phone: "",
+    gender: "",
     college: "",
     customCollege: "",
     password: "",
@@ -151,6 +152,26 @@ export default function SignUpPage() {
               required
             />
 
+            <div>
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                Gender *
+              </label>
+              <div className="relative">
+                <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-muted)] pointer-events-none" />
+                <select
+                  value={formData.gender}
+                  onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                  className="w-full pl-12 pr-4 py-3 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-xl text-white placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--accent-primary)] appearance-none"
+                  required
+                >
+                  <option value="" disabled>Select Gender</option>
+                  <option value="MEN">Male</option>
+                  <option value="WOMEN">Female</option>
+                  <option value="MIXED">Other</option>
+                </select>
+              </div>
+            </div>
+
             <SearchableSelect
               label="College/University"
               options={colleges}
@@ -233,7 +254,26 @@ export default function SignUpPage() {
             </Button>
           </form>
 
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-[var(--card-border)]" />
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-4 bg-[var(--card-bg)] text-[var(--text-muted)]">
+                Or continue with
+              </span>
+            </div>
+          </div>
 
+          <Button
+            variant="secondary"
+            size="lg"
+            className="w-full"
+            onClick={handleGoogleSignIn}
+          >
+            <Chrome className="w-5 h-5 mr-2" />
+            Sign up with Google
+          </Button>
 
           <p className="mt-6 text-center text-[var(--text-secondary)]">
             Already have an account?{" "}

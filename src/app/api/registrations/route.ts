@@ -137,14 +137,16 @@ export async function POST(req: NextRequest) {
           where: { id: session.user.id },
           data: {
             phone: validatedData.phone,
-            collegeId: finalCollegeId // Link user to college
+            collegeId: finalCollegeId, // Link user to college
+            gender: validatedData.gender
           },
         });
       } else {
         await tx.user.update({
           where: { id: session.user.id },
           data: {
-            collegeId: finalCollegeId
+            collegeId: finalCollegeId,
+            gender: validatedData.gender
           },
         });
       }
