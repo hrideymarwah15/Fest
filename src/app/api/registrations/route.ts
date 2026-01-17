@@ -113,7 +113,7 @@ export async function POST(req: NextRequest) {
       const updatedSport = await tx.sport.updateMany({
         where: {
           id: validatedData.sportId,
-          filledSlots: { lt: tx.sport.fields.maxSlots },
+          filledSlots: { lt: currentSport.maxSlots },
         },
         data: { filledSlots: { increment: 1 } },
       });
@@ -142,8 +142,10 @@ export async function POST(req: NextRequest) {
 
     // Check if user wants to pay immediately or later
     const payImmediately = body.payImmediately !== false; // Default to true for backward compatibility
+    const razorpayConfigured = process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET &&
+      process.env.RAZORPAY_KEY_ID !== "rzp_test_your_key_id";
 
-    if (payImmediately) {
+    if (payImmediately && razorpayConfigured) {
       // Create Razorpay order
       const order = await createRazorpayOrder({
         amount: sport.fee,
@@ -174,7 +176,7 @@ export async function POST(req: NextRequest) {
         keyId: process.env.RAZORPAY_KEY_ID,
       });
     } else {
-      // Create payment record without order (pending payment)
+      // Create payment record without order (pending payment - will be collected at counter/manually)
       await db.payment.create({
         data: {
           registrationId: registration.id,
@@ -186,8 +188,10 @@ export async function POST(req: NextRequest) {
 
       return NextResponse.json({
         registrationId: registration.id,
-        message: "Registration created successfully. Payment can be completed later from dashboard.",
+        message: "Registration created successfully. Payment will be collected separately.",
         status: "PENDING",
+        paymentRequired: true,
+        amount: sport.fee,
       });
     }
   } catch (error) {

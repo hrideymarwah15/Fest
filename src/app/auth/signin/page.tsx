@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import Link from "next/link";
-import { signIn } from "next-auth/react";
+import { signIn, getSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button, Input, Card } from "@/components/ui";
 import { Mail, Lock, ArrowRight, Chrome } from "lucide-react";
@@ -33,12 +33,15 @@ function SignInForm() {
       });
 
       if (result?.error) {
-        setError("Invalid credentials. Please try again.");
+        setError(result.error || "An error occurred. Please try again.");
       } else {
-        router.push(callbackUrl);
+        // Get session to check user role
+        const session = await getSession();
+        const redirectUrl = session?.user?.role === "ADMIN" ? "/admin" : callbackUrl;
+        router.push(redirectUrl);
       }
-    } catch (err) {
-      setError("An error occurred. Please try again.");
+    } catch (err: any) {
+      setError(err?.message || "An error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }

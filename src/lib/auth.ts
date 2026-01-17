@@ -66,6 +66,14 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
+    async signIn({ user }) {
+      // Only allow sign in if user exists
+      const dbUser = await db.user.findUnique({
+        where: { email: user.email! },
+        select: { role: true },
+      });
+      return !!dbUser;
+    },
     async jwt({ token, user, account }) {
       // When user signs in (first time or subsequent)
       if (user) {
@@ -80,35 +88,35 @@ export const authOptions: NextAuthOptions = {
           token.id = dbUser.id;
           token.role = dbUser.role;
           token.collegeId = dbUser.collegeId;
-          token.name = dbUser.name;
-          token.phone = dbUser.phone;
+          token.name = dbUser.name ?? undefined;
+          token.phone = dbUser.phone ?? undefined;
         } else {
           // User not found in database (shouldn't happen with Prisma adapter)
           // But handle gracefully
           token.id = user.id;
           token.role = user.role || "PARTICIPANT";
           token.collegeId = user.collegeId || null;
-          token.name = user.name;
-          token.phone = user.phone || null;
+          token.name = user.name ?? undefined;
+          token.phone = user.phone ?? undefined;
         }
       }
-      
+
       // For subsequent token refreshes, ensure we have user data from DB
       if (token.email && !token.id) {
         const dbUser = await db.user.findUnique({
           where: { email: token.email },
           select: { id: true, role: true, collegeId: true, name: true, phone: true },
         });
-        
+
         if (dbUser) {
           token.id = dbUser.id;
           token.role = dbUser.role;
           token.collegeId = dbUser.collegeId;
-          token.name = dbUser.name;
-          token.phone = dbUser.phone;
+          token.name = dbUser.name ?? undefined;
+          token.phone = dbUser.phone ?? undefined;
         }
       }
-      
+
       return token;
     },
     async session({ session, token }) {
