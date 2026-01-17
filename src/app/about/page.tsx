@@ -159,12 +159,12 @@ export default function AboutPage() {
                 the year. Don't miss out on the action!
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button size="lg" asChild>
-                  <Link href="/sports">Browse Sports</Link>
-                </Button>
-                <Button size="lg" variant="secondary" asChild>
-                  <Link href="/contact">Contact Us</Link>
-                </Button>
+                <Link href="/sports">
+                  <Button size="lg">Browse Sports</Button>
+                </Link>
+                <Link href="/contact">
+                  <Button size="lg" variant="secondary">Contact Us</Button>
+                </Link>
               </div>
             </Card>
           </motion.div>
