@@ -89,6 +89,7 @@ model Sport {
   description     String
   rules           Json
   type            SportType
+  gender          Gender    @default(OPEN)
   teamSize        Int       @default(1)
   minTeamSize     Int       @default(1)
   maxTeamSize     Int       @default(1)
@@ -196,4 +197,11 @@ enum PaymentStatus {
   SUCCESS
   FAILED
   REFUNDED
+}
+
+enum Gender {
+  MEN
+  WOMEN
+  MIXED
+  OPEN
 }

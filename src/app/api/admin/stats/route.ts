@@ -44,6 +44,7 @@ export async function GET(req: NextRequest) {
         id: true,
         name: true,
         type: true,
+        gender: true,
         maxSlots: true,
         filledSlots: true,
         fee: true,

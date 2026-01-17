@@ -43,6 +43,7 @@ interface SportStat {
   id: string;
   name: string;
   type: string;
+  gender?: string;
   maxSlots: number;
   filledSlots: number;
   fee: number;
@@ -73,6 +74,7 @@ interface SportForm {
   slug: string;
   description: string;
   type: "INDIVIDUAL" | "TEAM";
+  gender: "MEN" | "WOMEN" | "MIXED" | "OPEN";
   minTeamSize: number;
   maxTeamSize: number;
   maxSlots: number;
@@ -93,6 +95,7 @@ const emptySportForm: SportForm = {
   slug: "",
   description: "",
   type: "INDIVIDUAL",
+  gender: "OPEN",
   minTeamSize: 1,
   maxTeamSize: 1,
   maxSlots: 50,
@@ -890,6 +893,7 @@ export default function AdminDashboard() {
                       slug: sport.name.toLowerCase().replace(/\s+/g, "-"),
                       description: "",
                       type: sport.type as "INDIVIDUAL" | "TEAM",
+                      gender: (sport as any).gender || "OPEN",
                       minTeamSize: 1,
                       maxTeamSize: sport.type === "TEAM" ? 10 : 1,
                       maxSlots: sport.maxSlots,
@@ -1005,14 +1009,27 @@ export default function AdminDashboard() {
               </select>
             </div>
             <div>
-              <label className="block text-sm text-[var(--text-muted)] mb-1">Registration Fee (₹) *</label>
-              <input
-                type="number"
-                value={sportForm.fee}
-                onChange={(e) => setSportForm({ ...sportForm, fee: parseInt(e.target.value) || 0 })}
+              <label className="block text-sm text-[var(--text-muted)] mb-1">Gender *</label>
+              <select
+                value={sportForm.gender}
+                onChange={(e) => setSportForm({ ...sportForm, gender: e.target.value as "MEN" | "WOMEN" | "MIXED" | "OPEN" })}
                 className="w-full px-4 py-3 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]"
-              />
+              >
+                <option value="OPEN">Open</option>
+                <option value="MEN">Men</option>
+                <option value="WOMEN">Women</option>
+                <option value="MIXED">Mixed</option>
+              </select>
             </div>
+          </div>
+          <div>
+            <label className="block text-sm text-[var(--text-muted)] mb-1">Registration Fee (₹) *</label>
+            <input
+              type="number"
+              value={sportForm.fee}
+              onChange={(e) => setSportForm({ ...sportForm, fee: parseInt(e.target.value) || 0 })}
+              className="w-full px-4 py-3 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]"
+            />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>

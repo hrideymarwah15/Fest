@@ -13,6 +13,7 @@ interface Sport {
   slug: string;
   description: string;
   type: "TEAM" | "INDIVIDUAL";
+  gender?: "MEN" | "WOMEN" | "MIXED" | "OPEN";
   minTeamSize: number;
   maxTeamSize: number;
   maxSlots: number;
@@ -117,8 +118,8 @@ export default function SportsPage() {
                   key={type}
                   onClick={() => setFilterType(type)}
                   className={`px-4 py-3 rounded-xl font-medium text-sm transition-all ${filterType === type
-                      ? "bg-[var(--accent-primary)] text-white"
-                      : "bg-[var(--card-bg)] text-[var(--text-secondary)] border border-[var(--card-border)] hover:border-[var(--accent-primary)]"
+                    ? "bg-[var(--accent-primary)] text-white"
+                    : "bg-[var(--card-bg)] text-[var(--text-secondary)] border border-[var(--card-border)] hover:border-[var(--accent-primary)]"
                     }`}
                 >
                   {type === "ALL" && <Filter className="w-4 h-4 inline mr-2" />}
@@ -174,7 +175,7 @@ export default function SportsPage() {
                             {sport.name.slice(0, 2).toUpperCase()}
                           </span>
                         </div>
-                        <div className="absolute top-4 left-4">
+                        <div className="absolute top-4 left-4 flex gap-2 flex-wrap max-w-[70%]">
                           <Badge variant={sport.type === "TEAM" ? "team" : "individual"}>
                             {sport.type === "TEAM" ? (
                               <Users className="w-3 h-3 mr-1" />
@@ -183,6 +184,11 @@ export default function SportsPage() {
                             )}
                             {sport.type}
                           </Badge>
+                          {sport.gender && sport.gender !== "OPEN" && (
+                            <Badge variant="outline" className="bg-black/50 backdrop-blur-md border-white/20 text-white">
+                              {sport.gender}
+                            </Badge>
+                          )}
                         </div>
                         {sport.filledSlots >= sport.maxSlots * 0.9 && (
                           <div className="absolute top-4 right-4">

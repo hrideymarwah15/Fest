@@ -27,6 +27,7 @@ interface Sport {
   description: string;
   rules: any;
   type: "TEAM" | "INDIVIDUAL";
+  gender?: "MEN" | "WOMEN" | "MIXED" | "OPEN";
   minTeamSize: number;
   maxTeamSize: number;
   maxSlots: number;
@@ -305,6 +306,11 @@ export default function SportDetailPage() {
                   )}
                   {sport.type} Sport
                 </Badge>
+                {sport.gender && sport.gender !== "OPEN" && (
+                  <Badge variant="outline" className="text-white border-white/20">
+                    {sport.gender}
+                  </Badge>
+                )}
                 {isAlmostFull && <Badge variant="warning">Almost Full!</Badge>}
               </div>
 
@@ -401,11 +407,10 @@ export default function SportDetailPage() {
                           width: `${(sport.filledSlots / sport.maxSlots) * 100}%`,
                         }}
                         transition={{ duration: 1, delay: 0.5 }}
-                        className={`h-full rounded-full ${
-                          isAlmostFull
-                            ? "bg-blue-300"
-                            : "bg-[var(--accent-primary)]"
-                        }`}
+                        className={`h-full rounded-full ${isAlmostFull
+                          ? "bg-blue-300"
+                          : "bg-[var(--accent-primary)]"
+                          }`}
                       />
                     </div>
                     <div className="flex justify-between mt-2 text-sm">

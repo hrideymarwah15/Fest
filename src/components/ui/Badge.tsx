@@ -3,7 +3,7 @@
 import { cn } from "@/lib/utils";
 
 interface BadgeProps {
-  variant?: "default" | "success" | "warning" | "error" | "individual" | "team";
+  variant?: "default" | "success" | "warning" | "error" | "individual" | "team" | "outline";
   children: React.ReactNode;
   className?: string;
 }
@@ -16,6 +16,7 @@ const Badge = ({ variant = "default", children, className }: BadgeProps) => {
     error: "bg-red-500/20 text-red-400 border-red-500/30",
     individual: "bg-blue-500/20 text-blue-400 border-blue-500/30",
     team: "bg-blue-700/20 text-blue-700 border-blue-700/30",
+    outline: "bg-transparent border-[var(--text-muted)] text-[var(--text-secondary)]",
   };
 
   return (

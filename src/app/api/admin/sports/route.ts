@@ -45,6 +45,8 @@ export async function POST(req: NextRequest) {
       maxSlots,
       image,
       venue,
+      gender,
+      maxTeamSize,
     } = validatedData;
 
     // Check if slug already exists
@@ -65,8 +67,9 @@ export async function POST(req: NextRequest) {
         slug: sanitizeInput(slug),
         description: sanitizeInput(description),
         type,
+        gender: gender || "OPEN",
         minTeamSize: minTeamSize || 1,
-        maxTeamSize: minTeamSize || 1, // For individual sports, max = min
+        maxTeamSize: maxTeamSize || minTeamSize || 1,
         rules: rules || [],
         fee,
         maxSlots,

@@ -76,6 +76,7 @@ export async function PATCH(
       schedule,
       isActive,
       registrationOpen,
+      gender,
     } = body;
 
     const sport = await db.sport.update({
@@ -84,6 +85,7 @@ export async function PATCH(
         ...(name && { name }),
         ...(description && { description }),
         ...(type && { type }),
+        ...(gender && { gender }),
         ...(teamSize && { teamSize }),
         ...(minTeamSize && { minTeamSize }),
         ...(rules && { rules }),

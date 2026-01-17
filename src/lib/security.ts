@@ -42,6 +42,7 @@ export const sportCreationSchema = z.object({
   slug: z.string().min(3).max(100).regex(/^[a-z0-9-]+$/),
   description: z.string().min(10).max(1000),
   type: z.enum(["INDIVIDUAL", "TEAM"]),
+  gender: z.enum(["MEN", "WOMEN", "MIXED", "OPEN"]).optional(),
   minTeamSize: z.number().min(1).max(50),
   maxTeamSize: z.number().min(1).max(50),
   rules: z.array(z.string()).optional(),
