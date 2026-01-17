@@ -63,19 +63,24 @@ const Navbar = () => {
           <div className="hidden md:flex items-center gap-4">
             {session ? (
               <div className="flex items-center gap-4">
-                {pathname === "/dashboard" ? (
-                  <Button variant="ghost" size="sm" disabled className="cursor-default">
-                    <User className="w-4 h-4 mr-2" />
-                    Profile
-                  </Button>
-                ) : (
-                  <Link href="/dashboard">
+                {session.user?.role === "ADMIN" && (
+                  <Link href="/admin">
                     <Button variant="ghost" size="sm">
-                      <User className="w-4 h-4 mr-2" />
-                      Profile
+                      Admin
                     </Button>
                   </Link>
                 )}
+                <Link href="/profile">
+                  <Button variant="ghost" size="sm">
+                    <User className="w-4 h-4 mr-2" />
+                    Profile
+                  </Button>
+                </Link>
+                <Link href="/dashboard">
+                  <Button variant="secondary" size="sm">
+                    Dashboard
+                  </Button>
+                </Link>
                 <Button
                   variant="secondary"
                   size="sm"
