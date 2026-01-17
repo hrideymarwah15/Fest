@@ -124,6 +124,7 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<"overview" | "registrations" | "sports" | "colleges" | "users">("registrations");
   const [stats, setStats] = useState<Stats | null>(null);
   const [registrations, setRegistrations] = useState<Registration[]>([]);
+  const [colleges, setColleges] = useState<CollegeStat[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -164,9 +165,10 @@ export default function AdminDashboard() {
       if (sessionStatus !== "authenticated" || session?.user?.role !== "ADMIN") return;
 
       try {
-        const [statsRes, registrationsRes, usersRes] = await Promise.all([
+        const [statsRes, registrationsRes, collegesRes, usersRes] = await Promise.all([
           fetch("/api/admin/stats"),
           fetch("/api/admin/registrations"),
+          fetch("/api/admin/colleges"),
           fetch("/api/admin/users"),
         ]);
 
@@ -178,6 +180,11 @@ export default function AdminDashboard() {
         if (registrationsRes.ok) {
           const registrationsData = await registrationsRes.json();
           setRegistrations(registrationsData);
+        }
+
+        if (collegesRes.ok) {
+          const collegesData = await collegesRes.json();
+          setColleges(collegesData);
         }
 
         if (usersRes.ok) {
@@ -1119,7 +1126,7 @@ export default function AdminDashboard() {
             <Download className="w-4 h-4 mr-2" />
             Export CSV
           </Button>
-          <Button
+          {/* <Button
             onClick={() => {
               setCollegeForm(emptyCollegeForm);
               setShowCollegeModal(true);
@@ -1127,7 +1134,7 @@ export default function AdminDashboard() {
           >
             <Plus className="w-4 h-4 mr-2" />
             Add College
-          </Button>
+          </Button> */}
         </div>
       </div>
 
@@ -1151,56 +1158,58 @@ export default function AdminDashboard() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--card-border)]">
-              {stats?.collegeStats?.map((college, index) => (
-                <tr key={college.id} className="hover:bg-[var(--background)]/50 group">
-                  <td className="px-6 py-4">
-                    <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center ${index === 0
-                        ? "bg-yellow-500"
-                        : index === 1
-                          ? "bg-gray-400"
-                          : index === 2
-                            ? "bg-blue-700"
-                            : "bg-[var(--card-border)]"
-                        }`}
-                    >
-                      <span className="text-white text-sm font-bold">
-                        {index + 1}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-white font-medium">
-                    {college.name}
-                  </td>
-                  <td className="px-6 py-4 text-[var(--text-secondary)]">
-                    {college._count.registrations}
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={() => {
-                          setCollegeForm({
-                            id: college.id,
-                            name: college.name,
-                            code: "",
-                            address: "",
-                          });
-                          setShowCollegeModal(true);
-                        }}
-                        className="p-2 rounded-lg bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition-colors"
+              {colleges
+                .filter((c) => c._count.registrations > 0)
+                .map((college, index) => (
+                  <tr key={college.id} className="hover:bg-[var(--background)]/50 group">
+                    <td className="px-6 py-4">
+                      <div
+                        className={`w-8 h-8 rounded-full flex items-center justify-center ${index === 0
+                          ? "bg-yellow-500"
+                          : index === 1
+                            ? "bg-gray-400"
+                            : index === 2
+                              ? "bg-blue-700"
+                              : "bg-[var(--card-border)]"
+                          }`}
                       >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => setDeleteConfirm({ type: "college", id: college.id, name: college.name })}
-                        className="p-2 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                        <span className="text-white text-sm font-bold">
+                          {index + 1}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-white font-medium">
+                      {college.name}
+                    </td>
+                    <td className="px-6 py-4 text-[var(--text-secondary)]">
+                      {college._count.registrations}
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={() => {
+                            setCollegeForm({
+                              id: college.id,
+                              name: college.name,
+                              code: "",
+                              address: "",
+                            });
+                            setShowCollegeModal(true);
+                          }}
+                          className="p-2 rounded-lg bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition-colors"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => setDeleteConfirm({ type: "college", id: college.id, name: college.name })}
+                          className="p-2 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </table>
         </div>

@@ -6,7 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { Navbar, Footer } from "@/components/layout";
-import { Button, Input, Select, Card } from "@/components/ui";
+import { Button, Input, SearchableSelect, Card } from "@/components/ui";
 import {
   ArrowLeft,
   ArrowRight,
@@ -18,6 +18,7 @@ import {
   Trash2,
   Loader2,
 } from "lucide-react";
+import northIndiaColleges from "@/data/north_india_colleges.json";
 
 interface Sport {
   id: string;
@@ -35,11 +36,8 @@ interface Sport {
   registrationOpen: boolean;
 }
 
-interface College {
-  id: string;
-  name: string;
-  code: string;
-}
+// College interface is no longer needed from API for list, but maybe for type safety?
+// Actually we will use the JSON list now.
 
 interface TeamMember {
   name: string;
@@ -54,7 +52,6 @@ export default function RegistrationPage() {
   const slug = params.slug as string;
 
   const [sport, setSport] = useState<Sport | null>(null);
-  const [colleges, setColleges] = useState<College[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -65,10 +62,17 @@ export default function RegistrationPage() {
     email: "",
     phone: "",
     collegeId: "",
+    customCollege: "",
     teamName: "",
     teamMembers: [] as TeamMember[],
   });
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+
+  // College options from JSON + Other
+  const collegeOptions = [
+    ...northIndiaColleges,
+    { value: "other", label: "Other (College Not Listed)", state: "" },
+  ];
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -84,29 +88,23 @@ export default function RegistrationPage() {
         ...prev,
         name: session.user.name || "",
         email: session.user.email || "",
+        // We'll trust they update college if needed, or if stored in user profile used here
+        // If user profile has collegeId that matches our list, great. 
         collegeId: session.user.collegeId || "",
       }));
     }
   }, [session]);
 
-  // Fetch sport and colleges
+  // Fetch sport only (colleges from JSON now)
   useEffect(() => {
     async function fetchData() {
       try {
-        const [sportRes, collegesRes] = await Promise.all([
-          fetch(`/api/sports/${slug}`),
-          fetch("/api/colleges"),
-        ]);
+        const sportRes = await fetch(`/api/sports/${slug}`);
 
         if (!sportRes.ok) throw new Error("Sport not found");
 
         const sportData = await sportRes.json();
         setSport(sportData);
-
-        if (collegesRes.ok) {
-          const collegesData = await collegesRes.json();
-          setColleges(collegesData);
-        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load data");
       } finally {
@@ -214,6 +212,7 @@ export default function RegistrationPage() {
       const registrationData: any = {
         sportId: sport.id,
         collegeId: formData.collegeId,
+        customCollege: formData.customCollege,
         phone: formData.phone,
         payImmediately,
       };
@@ -369,8 +368,6 @@ export default function RegistrationPage() {
     );
   }
 
-  const collegeOptions = colleges.map((c) => ({ value: c.id, label: c.name }));
-
   const renderStep = () => {
     switch (currentStep) {
       case 1:
@@ -415,14 +412,24 @@ export default function RegistrationPage() {
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 error={validationErrors.phone}
               />
-              <Select
+              <SearchableSelect
                 label="College/University *"
                 options={collegeOptions}
                 placeholder="Select your college"
                 value={formData.collegeId}
-                onChange={(e) => setFormData({ ...formData, collegeId: e.target.value })}
+                onChange={(value) => setFormData({ ...formData, collegeId: value })}
                 error={validationErrors.collegeId}
+                required
               />
+              {formData.collegeId === "other" && (
+                <Input
+                  label="College Name"
+                  placeholder="Enter your college name"
+                  value={formData.customCollege}
+                  onChange={(e) => setFormData({ ...formData, customCollege: e.target.value })}
+                  required
+                />
+              )}
             </div>
           </motion.div>
         );
@@ -657,7 +664,7 @@ export default function RegistrationPage() {
           <div>
             <p className="text-[var(--text-muted)] text-sm">College</p>
             <p className="text-white">
-              {colleges.find((c) => c.id === formData.collegeId)?.name || "N/A"}
+              {collegeOptions.find((c) => c.value === formData.collegeId)?.label || "N/A"}
             </p>
           </div>
         </div>

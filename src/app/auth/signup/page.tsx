@@ -23,6 +23,7 @@ export default function SignUpPage() {
     email: "",
     phone: "",
     college: "",
+    customCollege: "",
     password: "",
     confirmPassword: "",
   });
@@ -44,7 +45,12 @@ export default function SignUpPage() {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          // If college is not "other", verify customCollege is ignored or handle usage logic here?
+          // The API expects customCollege if college is "other".
+          // formData includes customCollege, so sending it all is fine.
+        }),
       });
 
       if (!res.ok) {
@@ -155,6 +161,18 @@ export default function SignUpPage() {
               }
               required
             />
+
+            {formData.college === "other" && (
+              <Input
+                label="College Name"
+                placeholder="Enter your college name"
+                value={formData.customCollege}
+                onChange={(e) =>
+                  setFormData({ ...formData, customCollege: e.target.value })
+                }
+                required
+              />
+            )}
 
             <Input
               label="Password"

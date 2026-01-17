@@ -15,8 +15,52 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
+
+    // Resolve college ID (Find or Create)
+    let finalCollegeId = body.collegeId;
+    let finalCollegeName = body.collegeId;
+
+    if (body.collegeId === "other") {
+      if (!body.customCollege) {
+        return badRequestResponse("Custom college name is required");
+      }
+      finalCollegeName = body.customCollege;
+    }
+
+    // Attempt to find college by ID first (in case it IS a CUID, though unlikely now)
+    // or by Name (most likely)
+    // We'll search by Name since our select values are names
+    let college = await db.college.findFirst({
+      where: {
+        OR: [
+          { id: finalCollegeId }, // In case a real ID is passed
+          { name: { equals: finalCollegeName } } // Name match
+        ]
+      }
+    });
+
+    if (!college) {
+      // Create new college
+      // Generate a code from name (e.g. ABSS -> ABSS_INSTITUTE)
+      const code = finalCollegeName.toUpperCase().replace(/[^A-Z0-9]/g, '_').substring(0, 20) + "_" + Math.floor(Math.random() * 1000);
+
+      college = await db.college.create({
+        data: {
+          name: finalCollegeName,
+          code: code,
+          address: "Added via Registration",
+        }
+      });
+    }
+
+    finalCollegeId = college.id;
+
+    // We override the collegeId in the body for validation if schema expects CUID
+    // But schema likely just checks string.
+    const inputData = { ...body, collegeId: finalCollegeId };
+
     const validatedData = registrationSchema.parse({
-      ...body,
+      ...inputData,
       teamName: body.teamName ? sanitizeInput(body.teamName) : undefined,
       teamMembers: body.teamMembers?.map((member: any) => ({
         name: sanitizeInput(member.name),
@@ -87,10 +131,21 @@ export async function POST(req: NextRequest) {
       }
 
       // Update user's phone number if provided and not already set
+      // Also update collegeId if not set
       if (validatedData.phone) {
         await tx.user.update({
           where: { id: session.user.id },
-          data: { phone: validatedData.phone },
+          data: {
+            phone: validatedData.phone,
+            collegeId: finalCollegeId // Link user to college
+          },
+        });
+      } else {
+        await tx.user.update({
+          where: { id: session.user.id },
+          data: {
+            collegeId: finalCollegeId
+          },
         });
       }
 
@@ -99,7 +154,7 @@ export async function POST(req: NextRequest) {
         data: {
           userId: session.user.id,
           sportId: validatedData.sportId,
-          collegeId: validatedData.collegeId,
+          collegeId: finalCollegeId, // Use the resolved DB ID
           teamName: validatedData.teamName,
           teamMembers: validatedData.teamMembers
             ? validatedData.teamMembers

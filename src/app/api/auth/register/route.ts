@@ -8,6 +8,7 @@ const registerSchema = z.object({
   email: z.string().email("Invalid email address"),
   phone: z.string().regex(/^\d{10}$/, "Invalid phone number"),
   college: z.string().min(1, "College is required"),
+  customCollege: z.string().optional(),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
@@ -28,18 +29,29 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Resolve college
+    let finalCollegeName = validatedData.college;
+    if (finalCollegeName === "other") {
+      if (!validatedData.customCollege) {
+        return NextResponse.json({ message: "Custom college name is required" }, { status: 400 });
+      }
+      finalCollegeName = validatedData.customCollege;
+    }
+
     // Find or create college
     let college = await db.college.findFirst({
-      where: { code: validatedData.college },
+      where: { name: finalCollegeName }, // Match by name not code
     });
 
-    if (!college && validatedData.college !== "other") {
-      // Create college if it doesn't exist (in production, colleges would be seeded)
+    if (!college) {
+      // Create college if it doesn't exist
+      const code = finalCollegeName.toUpperCase().replace(/[^A-Z0-9]/g, '_').substring(0, 20) + "_" + Math.floor(Math.random() * 1000);
+
       college = await db.college.create({
         data: {
-          name: validatedData.college,
-          code: validatedData.college,
-          address: "Delhi NCR",
+          name: finalCollegeName,
+          code: code,
+          address: "Added via Signup",
         },
       });
     }
