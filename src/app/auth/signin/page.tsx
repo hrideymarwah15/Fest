@@ -114,26 +114,7 @@ function SignInForm() {
         </Button>
       </form>
 
-      <div className="relative my-8">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-[var(--card-border)]" />
-        </div>
-        <div className="relative flex justify-center text-sm">
-          <span className="px-4 bg-[var(--card-bg)] text-[var(--text-muted)]">
-            Or continue with
-          </span>
-        </div>
-      </div>
 
-      <Button
-        variant="secondary"
-        size="lg"
-        className="w-full"
-        onClick={handleGoogleSignIn}
-      >
-        <Chrome className="w-5 h-5 mr-2" />
-        Sign in with Google
-      </Button>
 
       <p className="mt-8 text-center text-[var(--text-secondary)]">
         Don't have an account?{" "}

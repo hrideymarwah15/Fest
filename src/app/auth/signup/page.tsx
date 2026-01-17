@@ -4,19 +4,15 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Button, Input, Select, Card } from "@/components/ui";
+import { Button, Input, SearchableSelect, Card } from "@/components/ui";
 import { Mail, Lock, User, Phone, ArrowRight, Chrome } from "lucide-react";
 import { signIn } from "next-auth/react";
+import northIndiaColleges from "@/data/north_india_colleges.json";
 
+// Add "Other" option manually
 const colleges = [
-  { value: "rishihood", label: "Rishihood University" },
-  { value: "du", label: "Delhi University" },
-  { value: "ipu", label: "IP University" },
-  { value: "amity", label: "Amity University" },
-  { value: "ashoka", label: "Ashoka University" },
-  { value: "bennett", label: "Bennett University" },
-  { value: "jnu", label: "JNU Delhi" },
-  { value: "other", label: "Other" },
+  ...northIndiaColleges,
+  { value: "other", label: "Other (College Not Listed)", state: "" },
 ];
 
 export default function SignUpPage() {
@@ -149,13 +145,13 @@ export default function SignUpPage() {
               required
             />
 
-            <Select
+            <SearchableSelect
               label="College/University"
               options={colleges}
               placeholder="Select your college"
               value={formData.college}
-              onChange={(e) =>
-                setFormData({ ...formData, college: e.target.value })
+              onChange={(value) =>
+                setFormData({ ...formData, college: value })
               }
               required
             />
@@ -219,26 +215,7 @@ export default function SignUpPage() {
             </Button>
           </form>
 
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-[var(--card-border)]" />
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-[var(--card-bg)] text-[var(--text-muted)]">
-                Or continue with
-              </span>
-            </div>
-          </div>
 
-          <Button
-            variant="secondary"
-            size="lg"
-            className="w-full"
-            onClick={handleGoogleSignIn}
-          >
-            <Chrome className="w-5 h-5 mr-2" />
-            Sign up with Google
-          </Button>
 
           <p className="mt-6 text-center text-[var(--text-secondary)]">
             Already have an account?{" "}

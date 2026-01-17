@@ -30,7 +30,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
               "w-full bg-[var(--card-bg)] border border-[var(--card-border)] text-white rounded-lg px-4 py-3 transition-all duration-300",
               "focus:outline-none focus:border-[var(--accent-primary)] focus:shadow-[0_0_0_3px_var(--accent-primary-dim)]",
               "placeholder:text-[var(--text-muted)]",
-              icon && "pl-12",
+              icon && "pl-14",
               error && "border-red-500 focus:border-red-500 focus:shadow-[0_0_0_3px_rgba(239,68,68,0.1)]",
               className
             )}

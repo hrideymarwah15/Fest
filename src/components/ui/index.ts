@@ -6,3 +6,4 @@ export { Badge } from "./Badge";
 export { Modal } from "./Modal";
 export { Progress } from "./Progress";
 export { Accordion } from "./Accordion";
+export { SearchableSelect } from "./SearchableSelect";
