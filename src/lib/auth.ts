@@ -66,8 +66,27 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async signIn({ user }) {
-      // Only allow sign in if user exists
+    async signIn({ user, account }) {
+      // For Google OAuth, create user if they don't exist
+      if (account?.provider === "google") {
+        const existingUser = await db.user.findUnique({
+          where: { email: user.email! },
+        });
+
+        if (!existingUser) {
+          // Create new user for Google sign-in
+          await db.user.create({
+            data: {
+              email: user.email!,
+              name: user.name || "User",
+              role: "PARTICIPANT",
+            },
+          });
+        }
+        return true;
+      }
+
+      // For credentials provider, user must exist
       const dbUser = await db.user.findUnique({
         where: { email: user.email! },
         select: { role: true },
