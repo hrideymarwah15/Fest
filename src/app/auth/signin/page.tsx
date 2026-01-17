@@ -88,16 +88,16 @@ function SignInForm() {
         />
 
         <div className="flex items-center justify-between text-sm">
-          <label className="flex items-center gap-2 text-[var(--text-secondary)]">
+          <label className="flex items-center gap-2 text-[var(--text-secondary)] cursor-pointer">
             <input
               type="checkbox"
-              className="w-4 h-4 rounded border-[var(--card-border)] bg-[var(--card-bg)]"
+              className="w-4 h-4 rounded border border-[var(--input-border)] bg-transparent checked:bg-[var(--accent-primary)] checked:border-[var(--accent-primary)] cursor-pointer"
             />
             Remember me
           </label>
           <Link
             href="/auth/forgot-password"
-            className="text-[var(--accent-primary)] hover:underline"
+            className="text-[var(--accent-primary)] hover:underline transition-colors"
           >
             Forgot password?
           </Link>

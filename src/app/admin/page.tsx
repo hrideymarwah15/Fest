@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Navbar } from "@/components/layout";
-import { Button, Card, Badge, Modal, Input, Select } from "@/components/ui";
+import { Button, Card, Badge, Modal } from "@/components/ui";
 import {
   Users,
   Trophy,
@@ -650,13 +650,13 @@ export default function AdminDashboard() {
               placeholder="Search by name, email, or college..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-[var(--background)] border border-[var(--card-border)] rounded-xl text-white placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--accent-primary)]"
+              className="w-full pl-12 pr-4 py-3 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-xl text-white placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--accent-primary)]"
             />
           </div>
           <select
             value={filterSport}
             onChange={(e) => setFilterSport(e.target.value)}
-            className="px-4 py-3 bg-[var(--background)] border border-[var(--card-border)] rounded-xl text-white focus:outline-none focus:border-[var(--accent-primary)]"
+            className="px-4 py-3 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-xl text-white focus:outline-none focus:border-[var(--accent-primary)]"
           >
             <option value="all">All Sports</option>
             {stats?.sportStats?.map((sport) => (
@@ -982,7 +982,7 @@ export default function AdminDashboard() {
               type="text"
               value={sportForm.name}
               onChange={(e) => setSportForm({ ...sportForm, name: e.target.value })}
-              className="w-full px-4 py-3 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]"
+              className="w-full px-4 py-3 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]"
               placeholder="e.g., Cricket"
             />
           </div>
@@ -991,7 +991,7 @@ export default function AdminDashboard() {
             <textarea
               value={sportForm.description}
               onChange={(e) => setSportForm({ ...sportForm, description: e.target.value })}
-              className="w-full px-4 py-3 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]"
+              className="w-full px-4 py-3 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]"
               rows={3}
               placeholder="Describe the sport..."
             />
@@ -1002,7 +1002,7 @@ export default function AdminDashboard() {
               <select
                 value={sportForm.type}
                 onChange={(e) => setSportForm({ ...sportForm, type: e.target.value as "INDIVIDUAL" | "TEAM" })}
-                className="w-full px-4 py-3 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]"
+                className="w-full px-4 py-3 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]"
               >
                 <option value="INDIVIDUAL">Individual</option>
                 <option value="TEAM">Team</option>
@@ -1013,7 +1013,7 @@ export default function AdminDashboard() {
               <select
                 value={sportForm.gender}
                 onChange={(e) => setSportForm({ ...sportForm, gender: e.target.value as "MEN" | "WOMEN" | "MIXED" | "OPEN" })}
-                className="w-full px-4 py-3 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]"
+                className="w-full px-4 py-3 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]"
               >
                 <option value="OPEN">Open</option>
                 <option value="MEN">Men</option>
@@ -1028,7 +1028,7 @@ export default function AdminDashboard() {
               type="number"
               value={sportForm.fee}
               onChange={(e) => setSportForm({ ...sportForm, fee: parseInt(e.target.value) || 0 })}
-              className="w-full px-4 py-3 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]"
+              className="w-full px-4 py-3 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]"
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -1038,7 +1038,7 @@ export default function AdminDashboard() {
                 type="number"
                 value={sportForm.maxSlots}
                 onChange={(e) => setSportForm({ ...sportForm, maxSlots: parseInt(e.target.value) || 1 })}
-                className="w-full px-4 py-3 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]"
+                className="w-full px-4 py-3 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]"
               />
             </div>
             <div>
@@ -1047,7 +1047,7 @@ export default function AdminDashboard() {
                 type="text"
                 value={sportForm.venue}
                 onChange={(e) => setSportForm({ ...sportForm, venue: e.target.value })}
-                className="w-full px-4 py-3 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]"
+                className="w-full px-4 py-3 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]"
                 placeholder="e.g., Main Ground"
               />
             </div>
@@ -1060,7 +1060,7 @@ export default function AdminDashboard() {
                   type="number"
                   value={sportForm.minTeamSize}
                   onChange={(e) => setSportForm({ ...sportForm, minTeamSize: parseInt(e.target.value) || 1 })}
-                  className="w-full px-4 py-3 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]"
+                  className="w-full px-4 py-3 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]"
                 />
               </div>
               <div>
@@ -1069,20 +1069,22 @@ export default function AdminDashboard() {
                   type="number"
                   value={sportForm.maxTeamSize}
                   onChange={(e) => setSportForm({ ...sportForm, maxTeamSize: parseInt(e.target.value) || 1 })}
-                  className="w-full px-4 py-3 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]"
+                  className="w-full px-4 py-3 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]"
                 />
               </div>
             </div>
           )}
           <div className="flex items-center gap-3">
-            <input
-              type="checkbox"
-              id="registrationOpen"
-              checked={sportForm.registrationOpen}
-              onChange={(e) => setSportForm({ ...sportForm, registrationOpen: e.target.checked })}
-              className="w-5 h-5 rounded border-[var(--card-border)]"
-            />
-            <label htmlFor="registrationOpen" className="text-white">Registration Open</label>
+            <label className="flex items-center gap-2 text-white cursor-pointer">
+              <input
+                type="checkbox"
+                id="registrationOpen"
+                checked={sportForm.registrationOpen}
+                onChange={(e) => setSportForm({ ...sportForm, registrationOpen: e.target.checked })}
+                className="w-4 h-4 rounded border border-[var(--input-border)] bg-transparent checked:bg-[var(--accent-primary)] checked:border-[var(--accent-primary)] cursor-pointer"
+              />
+              Registration Open
+            </label>
           </div>
           <div className="flex justify-end gap-3 pt-4 border-t border-[var(--card-border)]">
             <Button variant="secondary" onClick={() => setShowSportModal(false)}>

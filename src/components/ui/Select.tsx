@@ -24,9 +24,9 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
           <select
             ref={ref}
             className={cn(
-              "w-full bg-[var(--card-bg)] border border-[var(--card-border)] text-white rounded-lg px-4 py-3 pr-10 transition-all duration-300 appearance-none cursor-pointer",
-              "focus:outline-none focus:border-[var(--accent-primary)] focus:shadow-[0_0_0_3px_var(--accent-primary-dim)]",
-              error && "border-red-500",
+              "w-full bg-[var(--input-bg)] border border-[var(--input-border)] text-white rounded-xl px-4 py-3 pr-10 transition-all duration-300 appearance-none cursor-pointer",
+              "focus:outline-none focus:border-[var(--accent-primary)] focus:ring-2 focus:ring-[var(--accent-primary)]/20",
+              error && "border-red-500 focus:border-red-500 focus:ring-red-500/20",
               className
             )}
             {...props}

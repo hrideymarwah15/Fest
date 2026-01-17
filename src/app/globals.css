@@ -8,6 +8,10 @@
   --card-bg: #141414;
   --card-border: #262626;
   
+  /* Input specific colors */
+  --input-bg: #1a1a1a;
+  --input-border: #2a2a2a;
+  
   /* Primary Accent - Light Blue */
   --accent-primary: #60A5FA;
   --accent-primary-hover: #3B82F6;

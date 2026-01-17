@@ -31,17 +31,13 @@ export async function POST(req: NextRequest) {
     }
 
     // Resolve college
-    let finalCollegeName = validatedData.college;
-    if (finalCollegeName === "other") {
-      if (!validatedData.customCollege) {
-        return NextResponse.json({ message: "Custom college name is required" }, { status: 400 });
-      }
-      finalCollegeName = validatedData.customCollege;
-    }
+    const finalCollegeName = validatedData.college.trim();
 
     // Find or create college
     let college = await db.college.findFirst({
-      where: { name: finalCollegeName }, // Match by name not code
+      where: {
+        name: { equals: finalCollegeName, mode: "insensitive" }, // Case insensitive match
+      },
     });
 
     if (!college) {

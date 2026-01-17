@@ -16,25 +16,18 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
 
-    // Resolve college ID (Find or Create)
-    let finalCollegeId = body.collegeId;
-    let finalCollegeName = body.collegeId;
-
-    if (body.collegeId === "other") {
-      if (!body.customCollege) {
-        return badRequestResponse("Custom college name is required");
-      }
-      finalCollegeName = body.customCollege;
+    // Resolve college Name (stored in collegeId field from frontend)
+    const collegeNameInput = body.collegeId?.trim();
+    if (!collegeNameInput) {
+      return badRequestResponse("College name is required");
     }
 
-    // Attempt to find college by ID first (in case it IS a CUID, though unlikely now)
-    // or by Name (most likely)
-    // We'll search by Name since our select values are names
+    // Attempt to find college by ID (if valid CUID) or Name (Case Insensitive)
     let college = await db.college.findFirst({
       where: {
         OR: [
-          { id: finalCollegeId }, // In case a real ID is passed
-          { name: { equals: finalCollegeName } } // Name match
+          { id: collegeNameInput }, // In case a real ID is passed
+          { name: { equals: collegeNameInput, mode: "insensitive" } } // Name match
         ]
       }
     });
@@ -42,18 +35,18 @@ export async function POST(req: NextRequest) {
     if (!college) {
       // Create new college
       // Generate a code from name (e.g. ABSS -> ABSS_INSTITUTE)
-      const code = finalCollegeName.toUpperCase().replace(/[^A-Z0-9]/g, '_').substring(0, 20) + "_" + Math.floor(Math.random() * 1000);
+      const code = collegeNameInput.toUpperCase().replace(/[^A-Z0-9]/g, '_').substring(0, 20) + "_" + Math.floor(Math.random() * 1000);
 
       college = await db.college.create({
         data: {
-          name: finalCollegeName,
+          name: collegeNameInput,
           code: code,
           address: "Added via Registration",
         }
       });
     }
 
-    finalCollegeId = college.id;
+    const finalCollegeId = college.id;
 
     // We override the collegeId in the body for validation if schema expects CUID
     // But schema likely just checks string.

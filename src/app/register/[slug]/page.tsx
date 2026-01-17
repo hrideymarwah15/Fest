@@ -419,7 +419,7 @@ export default function RegistrationPage() {
                   <select
                     value={formData.gender}
                     onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-                    className="w-full pl-12 pr-4 py-3 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl text-white placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--accent-primary)] appearance-none"
+                    className="w-full pl-12 pr-4 py-3 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-xl text-white placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--accent-primary)] appearance-none"
                   >
                     <option value="" disabled className="text-gray-500">Select Gender</option>
                     <option value="MEN">Male</option>
@@ -439,24 +439,14 @@ export default function RegistrationPage() {
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 error={validationErrors.phone}
               />
-              <SearchableSelect
+              <Input
                 label="College/University *"
-                options={collegeOptions}
-                placeholder="Select your college"
-                value={formData.collegeId}
-                onChange={(value) => setFormData({ ...formData, collegeId: value })}
+                placeholder="Enter your college name"
+                value={formData.collegeId} // We act as if this holds the name now
+                onChange={(e) => setFormData({ ...formData, collegeId: e.target.value })}
                 error={validationErrors.collegeId}
                 required
               />
-              {formData.collegeId === "other" && (
-                <Input
-                  label="College Name"
-                  placeholder="Enter your college name"
-                  value={formData.customCollege}
-                  onChange={(e) => setFormData({ ...formData, customCollege: e.target.value })}
-                  required
-                />
-              )}
             </div>
           </motion.div>
         );

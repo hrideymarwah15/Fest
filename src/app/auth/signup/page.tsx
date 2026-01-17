@@ -172,28 +172,19 @@ export default function SignUpPage() {
               </div>
             </div>
 
-            <SearchableSelect
-              label="College/University"
-              options={colleges}
-              placeholder="Select your college"
+            <Input
+              label="College/University Name"
+              placeholder="Enter your college name"
               value={formData.college}
-              onChange={(value) =>
-                setFormData({ ...formData, college: value })
+              onChange={(e) =>
+                setFormData({ ...formData, college: e.target.value })
               }
+              // icon? User didn't ask for icon but consistent design suggests one.
+              // I'll use School/Building icon if available or just generic.
+              // I'll skip icon or use `User` if no better one. I'll check imports.
+              // `SearchableSelect` didn't have icon prop in usage? No.
               required
             />
-
-            {formData.college === "other" && (
-              <Input
-                label="College Name"
-                placeholder="Enter your college name"
-                value={formData.customCollege}
-                onChange={(e) =>
-                  setFormData({ ...formData, customCollege: e.target.value })
-                }
-                required
-              />
-            )}
 
             <Input
               label="Password"
@@ -220,12 +211,12 @@ export default function SignUpPage() {
             />
 
             <div className="flex items-start gap-2">
-              <input
-                type="checkbox"
-                required
-                className="w-4 h-4 mt-1 rounded border-[var(--card-border)] bg-[var(--card-bg)]"
-              />
-              <span className="text-sm text-[var(--text-secondary)]">
+              <label className="flex items-center gap-2 text-[var(--text-secondary)] cursor-pointer">
+                <input
+                  type="checkbox"
+                  required
+                  className="w-4 h-4 rounded border border-[var(--input-border)] bg-transparent checked:bg-[var(--accent-primary)] checked:border-[var(--accent-primary)] cursor-pointer"
+                />
                 I agree to the{" "}
                 <Link
                   href="/terms"
@@ -240,7 +231,7 @@ export default function SignUpPage() {
                 >
                   Privacy Policy
                 </Link>
-              </span>
+              </label>
             </div>
 
             <Button

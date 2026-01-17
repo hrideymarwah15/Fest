@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Navbar, Footer } from "@/components/layout";
-import { Card, Button, Input, Select } from "@/components/ui";
+import { Card, Button } from "@/components/ui";
 import { User, Mail, Phone, Building, Save, Loader2 } from "lucide-react";
 
 interface College {
