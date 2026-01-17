@@ -1,0 +1,61 @@
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
+import { z } from "zod";
+
+const toggleSchema = z.object({
+  sportId: z.string(),
+  registrationOpen: z.boolean(),
+});
+
+export async function POST(req: NextRequest) {
+  try {
+    const session = await auth();
+
+    if (!session?.user || session.user.role !== "ADMIN") {
+      return NextResponse.json(
+        { message: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    const body = await req.json();
+    const validatedData = toggleSchema.parse(body);
+
+    // Use transaction to ensure atomic update
+    const sport = await db.$transaction(async (tx) => {
+      // Get current sport state
+      const currentSport = await tx.sport.findUnique({
+        where: { id: validatedData.sportId },
+      });
+
+      if (!currentSport) {
+        throw new Error("Sport not found");
+      }
+
+      // Update sport registration status
+      return await tx.sport.update({
+        where: { id: validatedData.sportId },
+        data: { registrationOpen: validatedData.registrationOpen },
+      });
+    });
+
+    return NextResponse.json({
+      message: `Sport registration ${sport.registrationOpen ? "opened" : "closed"}`,
+      sport,
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { message: error.issues[0].message },
+        { status: 400 }
+      );
+    }
+
+    console.error("Toggle sport error:", error);
+    return NextResponse.json(
+      { message: error instanceof Error ? error.message : "Failed to toggle sport registration" },
+      { status: 500 }
+    );
+  }
+}
