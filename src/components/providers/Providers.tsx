@@ -1,7 +1,7 @@
 "use client";
 
-import { SessionProvider } from "next-auth/react";
 import { ReactNode } from "react";
+import { AuthProvider } from "./AuthProvider";
 import PageLoader from "@/components/ui/PageLoader";
 
 interface ProvidersProps {
@@ -10,9 +10,9 @@ interface ProvidersProps {
 
 export function Providers({ children }: ProvidersProps) {
   return (
-    <SessionProvider>
+    <AuthProvider>
       <PageLoader />
       {children}
-    </SessionProvider>
+    </AuthProvider>
   );
 }

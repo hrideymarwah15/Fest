@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
+import { useAuth } from "@/components/providers/AuthProvider";
 import { useRouter } from "next/navigation";
 import { Navbar } from "@/components/layout";
 import { Button, Card, Badge, Modal } from "@/components/ui";
@@ -121,7 +121,7 @@ interface User {
 }
 
 export default function AdminDashboard() {
-  const { data: session, status: sessionStatus } = useSession();
+  const { user, isLoading: authLoading } = useAuth();
   const router = useRouter();
 
   const [activeTab, setActiveTab] = useState<"overview" | "registrations" | "sports" | "colleges" | "users">("registrations");
@@ -152,20 +152,20 @@ export default function AdminDashboard() {
 
   // Check admin access
   useEffect(() => {
-    if (sessionStatus === "loading") return;
-    if (!session) {
+    if (authLoading) return;
+    if (!user) {
       router.push("/auth/signin?callbackUrl=/admin");
       return;
     }
-    if (session.user?.role !== "ADMIN" && session.user?.email !== "admin@sportsfest.com") {
+    if (user.role !== "ADMIN" && user.email !== "admin@sportsfest.com") {
       router.push("/dashboard");
     }
-  }, [session, sessionStatus, router]);
+  }, [user, authLoading, router]);
 
   // Fetch stats and data
   useEffect(() => {
     async function fetchData() {
-      if (sessionStatus !== "authenticated" || session?.user?.role !== "ADMIN") return;
+      if (authLoading || !user || user.role !== "ADMIN") return;
 
       try {
         const [statsRes, registrationsRes, collegesRes, usersRes] = await Promise.all([
@@ -201,7 +201,7 @@ export default function AdminDashboard() {
       }
     }
     fetchData();
-  }, [session, sessionStatus]);
+  }, [user, authLoading]);
 
   const handleExportCSV = async () => {
     try {
@@ -439,7 +439,7 @@ export default function AdminDashboard() {
     return matchesSearch && matchesSport && matchesStatus;
   });
 
-  if (sessionStatus === "loading" || isLoading) {
+  if (authLoading || isLoading) {
     return (
       <main className="min-h-screen bg-[var(--background)]">
         <Navbar />

@@ -4,15 +4,16 @@ import { Suspense } from "react";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import Link from "next/link";
-import { signIn, getSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button, Input, Card } from "@/components/ui";
 import { Mail, Lock, ArrowRight, Chrome } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 
 function SignInForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+  const supabase = createClient();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -25,20 +26,23 @@ function SignInForm() {
     setError("");
 
     try {
-      const result = await signIn("credentials", {
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
-        redirect: false,
-        callbackUrl,
       });
 
-      if (result?.error) {
-        setError(result.error || "An error occurred. Please try again.");
-      } else {
-        // Get session to check user role
-        const session = await getSession();
-        const redirectUrl = session?.user?.role === "ADMIN" ? "/admin" : callbackUrl;
+      if (signInError) {
+        throw new Error(signInError.message);
+      }
+
+      if (data.user) {
+        // Check user role from our database
+        const response = await fetch("/api/auth/user-role");
+        const userData = await response.json();
+
+        const redirectUrl = userData?.role === "ADMIN" ? "/admin" : callbackUrl;
         router.push(redirectUrl);
+        router.refresh();
       }
     } catch (err: any) {
       setError(err?.message || "An error occurred. Please try again.");
@@ -47,8 +51,17 @@ function SignInForm() {
     }
   };
 
-  const handleGoogleSignIn = () => {
-    signIn("google", { callbackUrl });
+  const handleGoogleSignIn = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(callbackUrl)}`,
+      },
+    });
+
+    if (error) {
+      setError(error.message);
+    }
   };
 
   return (

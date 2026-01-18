@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { auth } from "@/lib/supabase/server";
 import { db } from "@/lib/db";
 import { unauthorizedResponse, serverErrorResponse } from "@/lib/security";
 

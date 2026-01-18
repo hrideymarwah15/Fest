@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { auth } from "@/lib/auth";
+import { auth } from "@/lib/supabase/server";
 import { verifyRazorpaySignature } from "@/lib/razorpay";
 import { badRequestResponse, notFoundResponse, serverErrorResponse, unauthorizedResponse } from "@/lib/security";
 import { logTransaction } from "@/lib/logger";

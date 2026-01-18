@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
+import { useAuth } from "@/components/providers/AuthProvider";
 import { useRouter } from "next/navigation";
 import { Navbar, Footer } from "@/components/layout";
 import { Card, Button } from "@/components/ui";
@@ -15,7 +15,7 @@ interface College {
 }
 
 export default function ProfilePage() {
-  const { data: session, status, update } = useSession();
+  const { user, isLoading: authLoading, refreshUser } = useAuth();
   const router = useRouter();
 
   const [colleges, setColleges] = useState<College[]>([]);
@@ -31,15 +31,15 @@ export default function ProfilePage() {
 
   // Redirect if not authenticated
   useEffect(() => {
-    if (status === "unauthenticated") {
+    if (!authLoading && !user) {
       router.push("/auth/signin?callbackUrl=/profile");
     }
-  }, [status, router]);
+  }, [authLoading, user, router]);
 
   // Fetch colleges and user data
   useEffect(() => {
     async function fetchData() {
-      if (status !== "authenticated") return;
+      if (authLoading || !user) return;
 
       try {
         // Fetch colleges
@@ -68,7 +68,7 @@ export default function ProfilePage() {
     }
 
     fetchData();
-  }, [status]);
+  }, [authLoading, user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,8 +87,8 @@ export default function ProfilePage() {
         throw new Error(data.message || "Failed to update profile");
       }
 
-      // Update session
-      await update();
+      // Refresh user data
+      await refreshUser();
 
       setMessage({ type: "success", text: "Profile updated successfully!" });
     } catch (error) {
@@ -101,7 +101,7 @@ export default function ProfilePage() {
     }
   };
 
-  if (status === "loading" || isLoading) {
+  if (authLoading || isLoading) {
     return (
       <main className="min-h-screen bg-[var(--background)]">
         <Navbar />
@@ -113,7 +113,7 @@ export default function ProfilePage() {
     );
   }
 
-  if (status === "unauthenticated") {
+  if (!user) {
     return null;
   }
 
@@ -146,11 +146,10 @@ export default function ProfilePage() {
             <Card className="p-8">
               {message && (
                 <div
-                  className={`mb-6 p-4 rounded-xl border ${
-                    message.type === "success"
+                  className={`mb-6 p-4 rounded-xl border ${message.type === "success"
                       ? "bg-green-500/10 border-green-500/30 text-green-400"
                       : "bg-red-500/10 border-red-500/30 text-red-400"
-                  }`}
+                    }`}
                 >
                   {message.text}
                 </div>
@@ -163,9 +162,9 @@ export default function ProfilePage() {
                     <User className="w-10 h-10 text-[var(--accent-primary)]" />
                   </div>
                   <div>
-                    <h3 className="text-white font-medium">{session?.user?.name || "User"}</h3>
+                    <h3 className="text-white font-medium">{user?.user_metadata?.full_name || user?.email?.split('@')[0] || "User"}</h3>
                     <p className="text-[var(--text-muted)] text-sm">
-                      {session?.user?.role || "PARTICIPANT"}
+                      {user?.role || "PARTICIPANT"}
                     </p>
                   </div>
                 </div>

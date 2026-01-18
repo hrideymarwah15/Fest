@@ -1,17 +1,24 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { Menu, X, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui";
-import { useSession, signOut } from "next-auth/react";
+import { useAuth } from "@/components/providers/AuthProvider";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { data: session } = useSession();
+  const { user, signOut } = useAuth();
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleSignOut = async () => {
+    await signOut();
+    router.push("/");
+    router.refresh();
+  };
 
   const navLinks = [
     { href: "/", label: "Home" },
@@ -87,7 +94,7 @@ const Navbar = () => {
           </motion.div>
 
           {/* Desktop Navigation - Hidden when logged in */}
-          {!session && (
+          {!user && (
             <motion.div
               className="hidden md:flex items-center gap-8"
               variants={{
@@ -107,11 +114,10 @@ const Navbar = () => {
                 <motion.div key={link.href} variants={navItemVariants}>
                   <Link
                     href={link.href}
-                    className={`text-sm font-medium uppercase tracking-wide transition-all duration-300 ${
-                      pathname === link.href
-                        ? "text-[var(--accent-primary)]"
-                        : "text-[var(--text-secondary)] hover:text-white"
-                    }`}
+                    className={`text-sm font-medium uppercase tracking-wide transition-all duration-300 ${pathname === link.href
+                      ? "text-[var(--accent-primary)]"
+                      : "text-[var(--text-secondary)] hover:text-white"
+                      }`}
                   >
                     <motion.span
                       whileHover={{
@@ -144,9 +150,9 @@ const Navbar = () => {
             initial="hidden"
             animate="visible"
           >
-            {session ? (
+            {user ? (
               <div className="flex items-center gap-4">
-                {session.user?.role === "ADMIN" && (
+                {user.role === "ADMIN" && (
                   <motion.div variants={navItemVariants}>
                     <Link href="/admin">
                       <Button variant="ghost" size="sm">
@@ -174,7 +180,7 @@ const Navbar = () => {
                   <Button
                     variant="secondary"
                     size="sm"
-                    onClick={() => signOut()}
+                    onClick={handleSignOut}
                   >
                     <LogOut className="w-4 h-4 mr-2" />
                     Sign Out
@@ -237,7 +243,7 @@ const Navbar = () => {
             animate={isOpen ? "visible" : "hidden"}
           >
             {/* Navigation Links - Hidden when logged in */}
-            {!session && (
+            {!user && (
               <>
                 {navLinks.map((link) => (
                   <motion.div key={link.href} variants={navItemVariants}>
@@ -256,7 +262,7 @@ const Navbar = () => {
               className="pt-4 border-t border-[var(--card-border)] space-y-3"
               variants={navItemVariants}
             >
-              {session ? (
+              {user ? (
                 <>
                   {pathname === "/dashboard" ? (
                     <Button variant="secondary" size="sm" className="w-full cursor-default" disabled>
@@ -273,7 +279,7 @@ const Navbar = () => {
                     variant="ghost"
                     size="sm"
                     className="w-full"
-                    onClick={() => signOut()}
+                    onClick={handleSignOut}
                   >
                     Sign Out
                   </Button>

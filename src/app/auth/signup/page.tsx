@@ -4,19 +4,13 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Button, Input, SearchableSelect, Card } from "@/components/ui";
+import { Button, Input, Card } from "@/components/ui";
 import { Mail, Lock, User, Users, Phone, ArrowRight, Chrome } from "lucide-react";
-import { signIn } from "next-auth/react";
-import northIndiaColleges from "@/data/north_india_colleges.json";
-
-// Add "Other" option manually
-const colleges = [
-  ...northIndiaColleges,
-  { value: "other", label: "Other (College Not Listed)", state: "" },
-];
+import { createClient } from "@/lib/supabase/client";
 
 export default function SignUpPage() {
   const router = useRouter();
+  const supabase = createClient();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -24,17 +18,18 @@ export default function SignUpPage() {
     phone: "",
     gender: "",
     college: "",
-    customCollege: "",
     password: "",
     confirmPassword: "",
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
+    setMessage("");
 
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords do not match");
@@ -42,29 +37,53 @@ export default function SignUpPage() {
       return;
     }
 
+    if (formData.password.length < 8) {
+      setError("Password must be at least 8 characters");
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      const res = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...formData,
-          // If college is not "other", verify customCollege is ignored or handle usage logic here?
-          // The API expects customCollege if college is "other".
-          // formData includes customCollege, so sending it all is fine.
-        }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.message || "Registration failed");
-      }
-
-      // Sign in after successful registration
-      await signIn("credentials", {
+      // First, register user with Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
-        callbackUrl: "/dashboard",
+        options: {
+          data: {
+            full_name: formData.name,
+            phone: formData.phone,
+            gender: formData.gender,
+            college: formData.college,
+          },
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
       });
+
+      if (authError) {
+        throw new Error(authError.message);
+      }
+
+      if (authData.user && !authData.session) {
+        // Email confirmation required
+        setMessage("Check your email for the confirmation link!");
+      } else if (authData.session) {
+        // User is immediately signed in (email confirmation disabled in Supabase)
+        // Sync user to our database
+        await fetch("/api/auth/sync-user", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: authData.user!.id,
+            email: formData.email,
+            name: formData.name,
+            phone: formData.phone,
+            gender: formData.gender,
+            college: formData.college,
+          }),
+        });
+        router.push("/dashboard");
+        router.refresh();
+      }
     } catch (err: any) {
       setError(err.message || "An error occurred. Please try again.");
     } finally {
@@ -72,8 +91,17 @@ export default function SignUpPage() {
     }
   };
 
-  const handleGoogleSignIn = () => {
-    signIn("google", { callbackUrl: "/dashboard" });
+  const handleGoogleSignIn = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+
+    if (error) {
+      setError(error.message);
+    }
   };
 
   return (
@@ -114,6 +142,12 @@ export default function SignUpPage() {
           {error && (
             <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-sm">
               {error}
+            </div>
+          )}
+
+          {message && (
+            <div className="mb-6 p-4 bg-green-500/10 border border-green-500/30 rounded-xl text-green-400 text-sm">
+              {message}
             </div>
           )}
 
@@ -161,7 +195,7 @@ export default function SignUpPage() {
                 <select
                   value={formData.gender}
                   onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-                  className="w-full pl-12 pr-4 py-3 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-xl text-white placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--accent-primary)] appearance-none"
+                  className="w-full !pl-14 pr-4 py-3 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-xl text-white placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--accent-primary)] appearance-none"
                   required
                 >
                   <option value="" disabled>Select Gender</option>
@@ -179,17 +213,13 @@ export default function SignUpPage() {
               onChange={(e) =>
                 setFormData({ ...formData, college: e.target.value })
               }
-              // icon? User didn't ask for icon but consistent design suggests one.
-              // I'll use School/Building icon if available or just generic.
-              // I'll skip icon or use `User` if no better one. I'll check imports.
-              // `SearchableSelect` didn't have icon prop in usage? No.
               required
             />
 
             <Input
               label="Password"
               type="password"
-              placeholder="Create a strong password"
+              placeholder="Create a strong password (min 8 chars)"
               value={formData.password}
               onChange={(e) =>
                 setFormData({ ...formData, password: e.target.value })

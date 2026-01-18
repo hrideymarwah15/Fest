@@ -4,7 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useAuth } from "@/components/providers/AuthProvider";
 import { useRouter } from "next/navigation";
 import { Navbar, Footer } from "@/components/layout";
 import { Button, Card, Badge } from "@/components/ui";
@@ -114,7 +114,7 @@ function formatDate(dateStr: string | null) {
 }
 
 export default function DashboardPage() {
-  const { data: session, status: sessionStatus } = useSession();
+  const { user, isLoading: authLoading } = useAuth();
   const router = useRouter();
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -124,8 +124,8 @@ export default function DashboardPage() {
   // Fetch user registrations
   useEffect(() => {
     async function fetchRegistrations() {
-      if (sessionStatus === "loading") return;
-      if (!session) {
+      if (authLoading) return;
+      if (!user) {
         router.push("/auth/signin?callbackUrl=/dashboard");
         return;
       }
@@ -142,7 +142,7 @@ export default function DashboardPage() {
       }
     }
     fetchRegistrations();
-  }, [session, sessionStatus, router]);
+  }, [user, authLoading, router]);
 
   const confirmedCount = registrations.filter((r) => r.status === "CONFIRMED").length;
   const pendingCount = registrations.filter((r) => r.status === "PENDING").length;
@@ -150,7 +150,7 @@ export default function DashboardPage() {
   // Handle completing pending payment
   const handleCompletePayment = async (registrationId: string) => {
     if (isProcessingPayment) return;
-    
+
     setIsProcessingPayment(true);
     setError(null);
 
@@ -213,8 +213,8 @@ export default function DashboardPage() {
           }
         },
         prefill: {
-          name: session?.user?.name || "",
-          email: session?.user?.email || "",
+          name: user?.user_metadata?.full_name || user?.email?.split('@')[0] || "",
+          email: user?.email || "",
         },
         theme: {
           color: "#10B981",
@@ -234,7 +234,7 @@ export default function DashboardPage() {
     }
   };
 
-  if (sessionStatus === "loading" || isLoading) {
+  if (authLoading || isLoading) {
     return (
       <main className="min-h-screen bg-[var(--background)]">
         <Navbar />
@@ -269,7 +269,7 @@ export default function DashboardPage() {
                   MY DASHBOARD
                 </h1>
                 <p className="text-[var(--text-secondary)]">
-                  Welcome back, {session?.user?.name || "User"}
+                  Welcome back, {user?.user_metadata?.full_name || user?.email?.split('@')[0] || "User"}
                 </p>
               </div>
               <Link href="/sports">
@@ -350,15 +350,15 @@ export default function DashboardPage() {
                 <div className="flex-1 grid md:grid-cols-3 gap-4">
                   <div>
                     <p className="text-[var(--text-muted)] text-sm">Name</p>
-                    <p className="text-white font-medium">{session?.user?.name || "N/A"}</p>
+                    <p className="text-white font-medium">{user?.user_metadata?.full_name || user?.email?.split('@')[0] || "N/A"}</p>
                   </div>
                   <div>
                     <p className="text-[var(--text-muted)] text-sm">Email</p>
-                    <p className="text-white font-medium">{session?.user?.email || "N/A"}</p>
+                    <p className="text-white font-medium">{user?.email || "N/A"}</p>
                   </div>
                   <div>
                     <p className="text-[var(--text-muted)] text-sm">Role</p>
-                    <p className="text-white font-medium">{session?.user?.role || "PARTICIPANT"}</p>
+                    <p className="text-white font-medium">{user?.role || "PARTICIPANT"}</p>
                   </div>
                 </div>
               </div>
@@ -439,7 +439,7 @@ export default function DashboardPage() {
                           </div>
                           <div className="flex gap-2">
                             {registration.status === "PENDING" ? (
-                              <Button 
+                              <Button
                                 size="sm"
                                 onClick={() => handleCompletePayment(registration.id)}
                                 disabled={isProcessingPayment}

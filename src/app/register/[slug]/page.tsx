@@ -3,10 +3,10 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useParams, useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useAuth } from "@/components/providers/AuthProvider";
 import Link from "next/link";
 import { Navbar, Footer } from "@/components/layout";
-import { Button, Input, SearchableSelect, Card } from "@/components/ui";
+import { Button, Input, Card } from "@/components/ui";
 import {
   ArrowLeft,
   ArrowRight,
@@ -18,7 +18,6 @@ import {
   Trash2,
   Loader2,
 } from "lucide-react";
-import northIndiaColleges from "@/data/north_india_colleges.json";
 
 interface Sport {
   id: string;
@@ -48,7 +47,7 @@ interface TeamMember {
 export default function RegistrationPage() {
   const params = useParams();
   const router = useRouter();
-  const { data: session, status: sessionStatus } = useSession();
+  const { user, isLoading: authLoading } = useAuth();
   const slug = params.slug as string;
 
   const [sport, setSport] = useState<Sport | null>(null);
@@ -69,33 +68,29 @@ export default function RegistrationPage() {
   });
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
-  // College options from JSON + Other
-  const collegeOptions = [
-    ...northIndiaColleges,
-    { value: "other", label: "Other (College Not Listed)", state: "" },
-  ];
+
 
   // Redirect if not authenticated
   useEffect(() => {
-    if (sessionStatus === "unauthenticated") {
+    if (!authLoading && !user) {
       router.push(`/auth/signin?callbackUrl=/register/${slug}`);
     }
-  }, [sessionStatus, router, slug]);
+  }, [authLoading, user, router, slug]);
 
-  // Pre-fill form with session data
+  // Pre-fill form with user data
   useEffect(() => {
-    if (session?.user) {
+    if (user) {
       setFormData((prev) => ({
         ...prev,
-        name: session.user.name || "",
-        email: session.user.email || "",
-        gender: (session.user as any).gender || "",
+        name: user.user_metadata?.full_name || user.email?.split('@')[0] || "",
+        email: user.email || "",
+        gender: user.user_metadata?.gender || "",
         // We'll trust they update college if needed, or if stored in user profile used here
         // If user profile has collegeId that matches our list, great. 
-        collegeId: session.user.collegeId || "",
+        collegeId: user.user_metadata?.college || "",
       }));
     }
-  }, [session]);
+  }, [user]);
 
   // Fetch sport only (colleges from JSON now)
   useEffect(() => {
@@ -206,7 +201,7 @@ export default function RegistrationPage() {
   };
 
   const handleSubmitRegistration = async (payImmediately: boolean = true) => {
-    if (!sport || !session) return;
+    if (!sport || !user) return;
 
     setIsSubmitting(true);
     setError(null);
@@ -278,8 +273,8 @@ export default function RegistrationPage() {
             }
           },
           prefill: {
-            name: session?.user?.name || "",
-            email: session?.user?.email || "",
+            name: user?.user_metadata?.full_name || user?.email?.split('@')[0] || "",
+            email: user?.email || "",
           },
           theme: {
             color: "#10B981",
@@ -304,7 +299,7 @@ export default function RegistrationPage() {
   };
 
   // Loading state
-  if (isLoading || sessionStatus === "loading") {
+  if (isLoading || authLoading) {
     return (
       <main className="min-h-screen bg-[var(--background)]">
         <Navbar />
@@ -681,7 +676,7 @@ export default function RegistrationPage() {
           <div>
             <p className="text-[var(--text-muted)] text-sm">College</p>
             <p className="text-white">
-              {collegeOptions.find((c) => c.value === formData.collegeId)?.label || "N/A"}
+              {formData.collegeId || "N/A"}
             </p>
           </div>
         </div>
