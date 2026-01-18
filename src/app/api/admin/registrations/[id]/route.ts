@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { unauthorizedResponse, notFoundResponse, serverErrorResponse } from "@/lib/security";
+import { logTransaction } from "@/lib/logger";
 
 // DELETE cancel registration
 export async function DELETE(
@@ -22,6 +23,7 @@ export async function DELETE(
       include: {
         sport: true,
         payment: true,
+        user: { select: { id: true, email: true } },
       },
     });
 
@@ -29,7 +31,7 @@ export async function DELETE(
       return notFoundResponse("Registration");
     }
 
-    // Delete the registration and related payment
+    // Delete the registration and related payment, release slot
     await db.$transaction(async (tx) => {
       // Delete payment if exists
       if (registration.payment) {
@@ -42,13 +44,40 @@ export async function DELETE(
       await tx.registration.delete({
         where: { id },
       });
+
+      // Release the slot if registration was not already cancelled
+      if (registration.status !== "CANCELLED") {
+        await tx.sport.update({
+          where: { id: registration.sportId },
+          data: { filledSlots: { decrement: 1 } },
+        });
+      }
     });
+
+    // Log the admin action
+    await logTransaction(
+      "REGISTRATION_DELETED_BY_ADMIN",
+      "REGISTRATION",
+      id,
+      session.user.id,
+      {
+        deletedRegistration: {
+          sportId: registration.sportId,
+          sportName: registration.sport.name,
+          userId: registration.userId,
+          userEmail: registration.user.email,
+          status: registration.status,
+        },
+        adminEmail: session.user.email,
+      }
+    );
 
     return NextResponse.json({
       message: "Registration cancelled successfully",
       registration,
     });
-  } catch {
+  } catch (error) {
+    console.error("Failed to cancel registration:", error);
     return serverErrorResponse("Failed to cancel registration");
   }
 }

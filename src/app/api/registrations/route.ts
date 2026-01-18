@@ -264,9 +264,24 @@ export async function POST(req: NextRequest) {
       return badRequestResponse(error.issues[0].message);
     }
 
-    // Improved error reporting for debugging
-    const message = "Failed to create registration";
-    return serverErrorResponse(message);
+    // Handle specific custom errors
+    if (error instanceof Error) {
+      if (error.message === "REGISTRATION_CLOSED") {
+        return NextResponse.json(
+          { message: "Registrations are closed for this sport" },
+          { status: 400 }
+        );
+      }
+      if (error.message === "SLOTS_FULL") {
+        return NextResponse.json(
+          { message: "No slots available for this sport" },
+          { status: 400 }
+        );
+      }
+    }
+
+    console.error("Registration error:", error);
+    return serverErrorResponse("Failed to create registration");
   }
 }
 

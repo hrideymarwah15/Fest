@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { z } from "zod";
-import { unauthorizedResponse, badRequestResponse, serverErrorResponse } from "@/lib/security";
+import { unauthorizedResponse, badRequestResponse, notFoundResponse, serverErrorResponse } from "@/lib/security";
 
 const toggleSchema = z.object({
   sportId: z.string(),
@@ -13,7 +13,8 @@ export async function POST(req: NextRequest) {
   try {
     const session = await auth();
 
-    if (!session?.user || (session.user.role !== "ADMIN" && session.user.email !== "admin@sportsfest.com")) {
+    // Only check for ADMIN role, remove hardcoded email
+    if (!session?.user || session.user.role !== "ADMIN") {
       return unauthorizedResponse();
     }
 
@@ -28,7 +29,7 @@ export async function POST(req: NextRequest) {
       });
 
       if (!currentSport) {
-        throw new Error("Sport not found");
+        throw new Error("SPORT_NOT_FOUND");
       }
 
       // Update sport registration status
@@ -47,6 +48,12 @@ export async function POST(req: NextRequest) {
       return badRequestResponse(error.issues[0].message);
     }
 
+    // Handle specific errors
+    if (error instanceof Error && error.message === "SPORT_NOT_FOUND") {
+      return notFoundResponse("Sport");
+    }
+
+    console.error("Failed to toggle sport registration:", error);
     return serverErrorResponse("Failed to toggle sport registration");
   }
 }

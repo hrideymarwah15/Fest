@@ -13,6 +13,7 @@ export async function GET() {
         slug: true,
         description: true,
         type: true,
+        gender: true,
         minTeamSize: true,
         maxTeamSize: true,
         maxSlots: true,
@@ -25,8 +26,15 @@ export async function GET() {
       },
     });
 
-    return NextResponse.json(sports);
-  } catch {
-    return serverErrorResponse("Failed to fetch sports");
+    // Convert dates to ISO strings for safe serialization
+    const serializedSports = sports.map(sport => ({
+      ...sport,
+      eventDate: sport.eventDate ? sport.eventDate.toISOString() : null,
+    }));
+
+    return NextResponse.json(serializedSports);
+  } catch (error) {
+    console.error("Failed to fetch sports:", error);
+    return serverErrorResponse("Failed to fetch sports. Please check database connection.");
   }
 }

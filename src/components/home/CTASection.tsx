@@ -7,7 +7,6 @@ import { Button } from "@/components/ui";
 import { ArrowRight, Calendar, MapPin, Sparkles } from "lucide-react";
 import { useScrollAnimation } from "@/hooks/useAnimations";
 import { containerVariants, itemVariants } from "@/lib/animations";
-import CursorBackground from "@/components/ui/CursorBackground";
 
 const CTASection = () => {
   const { ref, isVisible } = useScrollAnimation();
@@ -33,12 +32,7 @@ const CTASection = () => {
   }, []);
 
   return (
-    <CursorBackground
-      className="py-24 bg-[var(--background)] relative overflow-hidden"
-      intensity={1.0}
-      colors={["#60A5FA", "#EC4899", "#8B5CF6"]}
-    >
-      <section className="relative overflow-hidden">
+    <section className="py-24 bg-[var(--background)] relative overflow-hidden">
       {/* Animated Background Elements */}
       <div className="absolute inset-0">
         <motion.div
@@ -338,7 +332,6 @@ const CTASection = () => {
         </motion.div>
       </div>
     </section>
-    </CursorBackground>
   );
 };
 

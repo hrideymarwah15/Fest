@@ -74,8 +74,10 @@ export function validateConfig() {
 }
 
 // Validate config on import (will fail at build time if missing)
-if (typeof window === "undefined") {
-  // Only validate on server-side
+// Skip validation during build phase
+const isBuildPhase = process.env.NEXT_PHASE === 'phase-production-build';
+if (typeof window === "undefined" && !isBuildPhase) {
+  // Only validate on server-side (not during build)
   try {
     validateConfig();
   } catch (error) {

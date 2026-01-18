@@ -3,12 +3,24 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { unauthorizedResponse, serverErrorResponse } from "@/lib/security";
 
+// Helper to sanitize CSV cell values to prevent formula injection
+function sanitizeCsvCell(value: unknown): string {
+  if (value === null || value === undefined) return "";
+  const str = String(value);
+  // Prevent CSV injection by escaping cells starting with formula characters
+  if (/^[=+\-@\t\r]/.test(str)) {
+    return `'${str}`;
+  }
+  return str;
+}
+
 // Export registrations as CSV
 export async function GET(req: NextRequest) {
   try {
     const session = await auth();
 
-    if (!session?.user || (session.user.role !== "ADMIN" && session.user.email !== "admin@sportsfest.com")) {
+    // Only check for ADMIN role, remove hardcoded email
+    if (!session?.user || session.user.role !== "ADMIN") {
       return unauthorizedResponse();
     }
 
@@ -74,22 +86,24 @@ export async function GET(req: NextRequest) {
     ];
 
     const rows = registrations.map((reg) => [
-      reg.id,
-      reg.teamName || "N/A",
-      reg.sport.name,
-      reg.sport.type,
-      reg.college?.name || "N/A",
-      reg.user.name || "N/A",
-      reg.user.email || "N/A",
-      reg.user.phone || "N/A",
-      Array.isArray(reg.teamMembers)
-        ? (reg.teamMembers as any[]).map((m) => m.name).join("; ")
-        : "N/A",
-      reg.status,
-      reg.payment?.amount || 0,
-      reg.payment?.status || "N/A",
-      reg.payment?.razorpayPaymentId || "N/A",
-      new Date(reg.createdAt).toISOString(),
+      sanitizeCsvCell(reg.id),
+      sanitizeCsvCell(reg.teamName || "N/A"),
+      sanitizeCsvCell(reg.sport.name),
+      sanitizeCsvCell(reg.sport.type),
+      sanitizeCsvCell(reg.college?.name || "N/A"),
+      sanitizeCsvCell(reg.user.name || "N/A"),
+      sanitizeCsvCell(reg.user.email || "N/A"),
+      sanitizeCsvCell(reg.user.phone || "N/A"),
+      sanitizeCsvCell(
+        Array.isArray(reg.teamMembers)
+          ? (reg.teamMembers as any[]).map((m) => m.name).join("; ")
+          : "N/A"
+      ),
+      sanitizeCsvCell(reg.status),
+      sanitizeCsvCell(reg.payment?.amount || 0),
+      sanitizeCsvCell(reg.payment?.status || "N/A"),
+      sanitizeCsvCell(reg.payment?.razorpayPaymentId || "N/A"),
+      sanitizeCsvCell(new Date(reg.createdAt).toISOString()),
     ]);
 
     const csv = [

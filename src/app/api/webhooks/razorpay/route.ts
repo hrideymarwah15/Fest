@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
             where: { razorpayOrderId: paymentEntity.order_id },
             data: {
               razorpayPaymentId: paymentEntity.id,
-              razorpaySignature: event.payload.payment.entity.signature,
+              // Note: Webhook payload doesn't contain signature, it's in the header
               status: "SUCCESS",
             },
             include: { registration: true },
@@ -128,24 +128,54 @@ export async function POST(req: NextRequest) {
       case "refund.created": {
         const refundEntity = event.payload.refund.entity;
 
-        // Find payment by razorpayPaymentId (not unique, so use findFirst)
-        const payment = await db.payment.findFirst({
-          where: { razorpayPaymentId: refundEntity.payment_id },
+        // Use transaction for atomic updates
+        await db.$transaction(async (tx) => {
+          // Find payment by razorpayPaymentId
+          const payment = await tx.payment.findFirst({
+            where: { razorpayPaymentId: refundEntity.payment_id },
+            include: { registration: true },
+          });
+
+          if (payment) {
+            // Check if already refunded (idempotency)
+            if (payment.status === "REFUNDED") {
+              return;
+            }
+
+            // Update payment status
+            await tx.payment.update({
+              where: { id: payment.id },
+              data: { status: "REFUNDED" },
+            });
+
+            // Update registration status
+            await tx.registration.update({
+              where: { id: payment.registrationId },
+              data: { status: "CANCELLED" },
+            });
+
+            // Release the slot
+            await tx.sport.update({
+              where: { id: payment.registration.sportId },
+              data: { filledSlots: { decrement: 1 } },
+            });
+
+            // Log the refund
+            await logTransaction(
+              "REFUND_PROCESSED",
+              "PAYMENT",
+              payment.id,
+              payment.registration.userId,
+              {
+                refundId: refundEntity.id,
+                razorpayPaymentId: refundEntity.payment_id,
+                amount: refundEntity.amount / 100, // Convert from paise
+                registrationId: payment.registrationId,
+                slotReleased: true,
+              }
+            );
+          }
         });
-
-        if (payment) {
-          // Update payment status
-          await db.payment.update({
-            where: { id: payment.id },
-            data: { status: "REFUNDED" },
-          });
-
-          // Update registration status
-          await db.registration.update({
-            where: { id: payment.registrationId },
-            data: { status: "CANCELLED" },
-          });
-        }
         break;
       }
     }

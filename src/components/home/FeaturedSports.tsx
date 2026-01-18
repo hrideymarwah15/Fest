@@ -7,7 +7,6 @@ import { Card, Badge, Button } from "@/components/ui";
 import { ArrowRight, Users, User, Clock } from "lucide-react";
 import { useScrollAnimation } from "@/hooks/useAnimations";
 import { containerVariants, itemVariants, cardVariants } from "@/lib/animations";
-import CursorBackground from "@/components/ui/CursorBackground";
 
 // Featured sports data (in production, this would come from the database)
 const featuredSports = [
@@ -61,12 +60,7 @@ const FeaturedSports = () => {
   const { ref, isVisible } = useScrollAnimation();
 
   return (
-    <CursorBackground
-      className="py-24 bg-[var(--background)] relative overflow-hidden"
-      intensity={0.8}
-      colors={["#60A5FA", "#8B5CF6", "#EC4899"]}
-    >
-      <section className="relative overflow-hidden">
+    <section className="py-24 bg-[var(--background)] relative overflow-hidden">
       {/* Animated Background */}
       <motion.div
         className="absolute top-0 right-0 w-[500px] h-[500px] bg-[var(--accent-primary)] rounded-full blur-[300px] opacity-5"
@@ -274,7 +268,6 @@ const FeaturedSports = () => {
         </motion.div>
       </div>
     </section>
-    </CursorBackground>
   );
 };
 

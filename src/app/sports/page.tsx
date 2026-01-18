@@ -36,11 +36,19 @@ export default function SportsPage() {
     async function fetchSports() {
       try {
         const res = await fetch("/api/sports");
-        if (!res.ok) throw new Error("Failed to fetch sports");
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({ message: "Failed to fetch sports" }));
+          throw new Error(errorData.message || "Failed to fetch sports");
+        }
         const data = await res.json();
-        setSports(data);
+        if (Array.isArray(data)) {
+          setSports(data);
+        } else {
+          throw new Error("Invalid response format");
+        }
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load sports");
+        console.error("Sports fetch error:", err);
+        setError(err instanceof Error ? err.message : "Failed to load sports. Please try again.");
       } finally {
         setIsLoading(false);
       }
@@ -57,13 +65,17 @@ export default function SportsPage() {
   const formatEventDate = (dateStr: string | null) => {
     if (!dateStr) return "TBA";
     try {
-      return new Date(dateStr).toLocaleDateString("en-IN", {
+      const date = new Date(dateStr);
+      // Check if date is valid
+      if (isNaN(date.getTime())) return "TBA";
+      
+      return date.toLocaleDateString("en-IN", {
         month: "short",
         day: "numeric",
         year: "numeric",
       });
     } catch {
-      return dateStr;
+      return "TBA";
     }
   };
 

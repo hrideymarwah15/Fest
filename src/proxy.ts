@@ -84,8 +84,20 @@ export default withAuth(
                     "/contact",
                 ];
 
-                // Check if it's a public route or public API
+                // Public API routes that don't require auth
+                const publicApiRoutes = [
+                    "/api/sports",
+                    "/api/colleges",
+                    "/api/auth",
+                ];
+
+                // Check if it's a public route
                 if (publicRoutes.some((route) => path === route || path.startsWith("/sports/"))) {
+                    return true;
+                }
+
+                // Check if it's a public API route
+                if (publicApiRoutes.some((route) => path.startsWith(route))) {
                     return true;
                 }
 

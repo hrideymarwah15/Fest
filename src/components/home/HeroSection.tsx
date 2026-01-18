@@ -5,7 +5,6 @@ import { useRef, useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui";
 import { ArrowRight, Zap, Trophy, Users } from "lucide-react";
-import CursorBackground from "@/components/ui/CursorBackground";
 
 const HeroSection = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -43,26 +42,21 @@ const HeroSection = () => {
   ];
 
   return (
-    <CursorBackground
-      className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#050508]"
-      intensity={1.5}
-      colors={["#60A5FA", "#3B82F6", "#1E40AF", "#1D4ED8"]}
-    >
       <section
         ref={containerRef}
-        className="relative min-h-screen flex items-center justify-center overflow-hidden"
+        className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#050508]"
       >
       {/* Base gradient background */}
       <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a12] via-[#050508] to-[#080810]" />
 
-      {/* Animated mesh gradient */}
-      <div className="absolute inset-0 opacity-60">
+      {/* Animated mesh gradient with blue, orange, red */}
+      <div className="absolute inset-0 opacity-50">
         <motion.div
           className="absolute inset-0"
           animate={{
             background: [
-              "radial-gradient(ellipse 80% 50% at 20% 40%, rgba(56, 189, 248, 0.15) 0%, transparent 50%), radial-gradient(ellipse 60% 40% at 80% 60%, rgba(59, 130, 246, 0.1) 0%, transparent 50%)",
-              "radial-gradient(ellipse 80% 50% at 80% 40%, rgba(56, 189, 248, 0.15) 0%, transparent 50%), radial-gradient(ellipse 60% 40% at 20% 60%, rgba(59, 130, 246, 0.1) 0%, transparent 50%)",
+              "radial-gradient(ellipse 80% 50% at 20% 40%, rgba(59, 130, 246, 0.2) 0%, transparent 50%), radial-gradient(ellipse 60% 40% at 80% 60%, rgba(249, 115, 22, 0.15) 0%, transparent 50%), radial-gradient(ellipse 50% 30% at 50% 80%, rgba(239, 68, 68, 0.1) 0%, transparent 50%)",
+              "radial-gradient(ellipse 80% 50% at 80% 40%, rgba(59, 130, 246, 0.2) 0%, transparent 50%), radial-gradient(ellipse 60% 40% at 20% 60%, rgba(249, 115, 22, 0.15) 0%, transparent 50%), radial-gradient(ellipse 50% 30% at 50% 20%, rgba(239, 68, 68, 0.1) 0%, transparent 50%)",
             ],
           }}
           transition={{
@@ -106,7 +100,14 @@ const HeroSection = () => {
         <defs>
           <linearGradient id="line-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
             <stop offset="0%" stopColor="transparent" />
-            <stop offset="50%" stopColor="rgba(96, 165, 250, 0.3)" />
+            <stop offset="30%" stopColor="rgba(59, 130, 246, 0.4)" />
+            <stop offset="60%" stopColor="rgba(249, 115, 22, 0.3)" />
+            <stop offset="100%" stopColor="transparent" />
+          </linearGradient>
+          <linearGradient id="line-gradient-2" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="transparent" />
+            <stop offset="40%" stopColor="rgba(239, 68, 68, 0.3)" />
+            <stop offset="80%" stopColor="rgba(249, 115, 22, 0.2)" />
             <stop offset="100%" stopColor="transparent" />
           </linearGradient>
         </defs>
@@ -127,7 +128,7 @@ const HeroSection = () => {
           y1="100%"
           x2="100%"
           y2="20%"
-          stroke="url(#line-gradient)"
+          stroke="url(#line-gradient-2)"
           strokeWidth="0.5"
           initial={{ pathLength: 0, opacity: 0 }}
           animate={{ pathLength: 1, opacity: 0.1 }}
@@ -135,11 +136,11 @@ const HeroSection = () => {
         />
       </svg>
 
-      {/* Floating orbs with parallax */}
+      {/* Floating orbs with parallax - Blue, Orange, Red */}
       <motion.div
         className="absolute top-1/4 left-1/4 w-[500px] h-[500px] rounded-full"
         style={{
-          background: "radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 70%)",
+          background: "radial-gradient(circle, rgba(59, 130, 246, 0.2) 0%, transparent 70%)",
           x: mousePosition.x * 0.5,
           y: mousePosition.y * 0.5,
           filter: "blur(40px)",
@@ -148,10 +149,19 @@ const HeroSection = () => {
       <motion.div
         className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] rounded-full"
         style={{
-          background: "radial-gradient(circle, rgba(14, 165, 233, 0.1) 0%, transparent 70%)",
+          background: "radial-gradient(circle, rgba(249, 115, 22, 0.18) 0%, transparent 70%)",
           x: mousePosition.x * -0.3,
           y: mousePosition.y * -0.3,
           filter: "blur(60px)",
+        }}
+      />
+      <motion.div
+        className="absolute top-1/2 right-1/3 w-[350px] h-[350px] rounded-full"
+        style={{
+          background: "radial-gradient(circle, rgba(239, 68, 68, 0.15) 0%, transparent 70%)",
+          x: mousePosition.x * 0.2,
+          y: mousePosition.y * -0.2,
+          filter: "blur(50px)",
         }}
       />
 
@@ -366,7 +376,6 @@ const HeroSection = () => {
       {/* Bottom gradient fade */}
       <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[var(--background)] to-transparent" />
     </section>
-    </CursorBackground>
   );
 };
 

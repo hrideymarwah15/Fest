@@ -5,7 +5,6 @@ import { useRef } from "react";
 import { UserPlus, CreditCard, Trophy, CheckCircle } from "lucide-react";
 import { useScrollAnimation } from "@/hooks/useAnimations";
 import { containerVariants, itemVariants, pathVariants } from "@/lib/animations";
-import CursorBackground from "@/components/ui/CursorBackground";
 import { StaggerChildren } from "@/components/ui/ScrollAnimations";
 const steps = [
   {
@@ -38,12 +37,7 @@ const HowItWorks = () => {
   const { ref, isVisible } = useScrollAnimation();
 
   return (
-    <CursorBackground
-      className="py-24 bg-[var(--card-bg)] relative overflow-hidden"
-      intensity={1.2}
-      colors={["#60A5FA", "#F59E0B", "#EF4444"]}
-    >
-      <section className="relative overflow-hidden">
+    <section className="py-24 bg-[var(--card-bg)] relative overflow-hidden">
       {/* Animated Grid Background */}
       <div className="absolute inset-0 grid-bg opacity-50">
         <motion.div
@@ -228,7 +222,6 @@ const HowItWorks = () => {
         </div>
       </div>
     </section>
-    </CursorBackground>
   );
 };
 

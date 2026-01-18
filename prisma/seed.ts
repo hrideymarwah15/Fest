@@ -2,11 +2,17 @@ import { PrismaClient, SportType, Role } from "@prisma/client";
 import { hash } from "bcryptjs";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
+import "dotenv/config";
 
-// Initializing Prisma Client for PostgreSQL (Prisma 7)
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+// Use DIRECT_URL for seeding (without pgbouncer)
+const connectionString = process.env.DIRECT_URL || process.env.DATABASE_URL;
+
+console.log("🔗 Connecting to database...");
+
+// Initializing Prisma Client for PostgreSQL
+const pool = new Pool({ connectionString });
 const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter });
+const prisma = new PrismaClient({ adapter } as any);
 
 async function main() {
   console.log("🌱 Starting database seeding...");

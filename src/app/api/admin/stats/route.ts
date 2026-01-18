@@ -8,7 +8,8 @@ export async function GET() {
   try {
     const session = await auth();
 
-    if (!session?.user || (session.user.role !== "ADMIN" && session.user.email !== "admin@sportsfest.com")) {
+    // Only check for ADMIN role, remove hardcoded email
+    if (!session?.user || session.user.role !== "ADMIN") {
       return unauthorizedResponse();
     }
 

@@ -40,10 +40,15 @@ export async function POST(req: NextRequest) {
     // Sanitize name and college inputs
     const sanitizedName = sanitizeInput(validatedData.name);
     const sanitizedCollege = sanitizeInput(validatedData.college);
+    
+    // Normalize email to lowercase
+    const normalizedEmail = validatedData.email.toLowerCase().trim();
 
-    // Check if user already exists
-    const existingUser = await db.user.findUnique({
-      where: { email: validatedData.email },
+    // Check if user already exists (case-insensitive)
+    const existingUser = await db.user.findFirst({
+      where: { 
+        email: { equals: normalizedEmail, mode: "insensitive" }
+      },
     });
 
     if (existingUser) {
@@ -53,44 +58,59 @@ export async function POST(req: NextRequest) {
     // Resolve college
     const finalCollegeName = sanitizedCollege.trim();
 
-    // Find or create college
-    let college = await db.college.findFirst({
-      where: {
-        name: { equals: finalCollegeName, mode: "insensitive" }, // Case insensitive match
-      },
-    });
-
-    if (!college) {
-      // Create college if it doesn't exist
-      const code = finalCollegeName.toUpperCase().replace(/[^A-Z0-9]/g, '_').substring(0, 20) + "_" + Math.floor(Math.random() * 1000);
-
-      college = await db.college.create({
-        data: {
-          name: finalCollegeName,
-          code: code,
-          address: "Added via Signup",
+    // Use transaction to prevent race conditions in college creation
+    const result = await db.$transaction(async (tx) => {
+      // Find or create college (with unique constraint handling)
+      let college = await tx.college.findFirst({
+        where: {
+          name: { equals: finalCollegeName, mode: "insensitive" },
         },
       });
-    }
 
-    // Hash password before saving
-    const hashedPassword = await bcrypt.hash(validatedData.password, 12);
+      if (!college) {
+        // Create college with unique code
+        const baseCode = finalCollegeName.toUpperCase().replace(/[^A-Z0-9]/g, '_').substring(0, 15);
+        const uniqueCode = `${baseCode}_${Date.now().toString(36)}`;
 
-    // Create user with hashed password
-    const user = await db.user.create({
-      data: {
-        name: sanitizedName,
-        email: validatedData.email.toLowerCase(),
-        phone: validatedData.phone,
-        password: hashedPassword,
-        collegeId: college?.id,
-        gender: validatedData.gender,
-        role: "PARTICIPANT",
-      },
+        try {
+          college = await tx.college.create({
+            data: {
+              name: finalCollegeName,
+              code: uniqueCode,
+              address: "Added via Signup",
+            },
+          });
+        } catch (e) {
+          // If unique constraint violation, fetch existing
+          college = await tx.college.findFirst({
+            where: {
+              name: { equals: finalCollegeName, mode: "insensitive" },
+            },
+          });
+        }
+      }
+
+      // Hash password before saving
+      const hashedPassword = await bcrypt.hash(validatedData.password, 12);
+
+      // Create user with hashed password
+      const user = await tx.user.create({
+        data: {
+          name: sanitizedName,
+          email: normalizedEmail,
+          phone: validatedData.phone,
+          password: hashedPassword,
+          collegeId: college?.id,
+          gender: validatedData.gender,
+          role: "PARTICIPANT",
+        },
+      });
+
+      return user;
     });
 
     return NextResponse.json(
-      { message: "User registered successfully", userId: user.id },
+      { message: "User registered successfully", userId: result.id },
       { status: 201 }
     );
   } catch (error) {

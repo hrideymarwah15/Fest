@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "ghost" | "danger";
+  variant?: "primary" | "secondary" | "tertiary" | "ghost" | "danger";
   size?: "sm" | "md" | "lg";
   isLoading?: boolean;
   icon?: React.ReactNode;
@@ -30,13 +30,15 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
     const variants = {
       primary:
-        "bg-[var(--accent-primary)] text-white hover:bg-[var(--accent-primary-hover)] hover:shadow-lg active:scale-[0.98]",
+        "bg-[var(--accent-primary)] text-white hover:bg-[var(--accent-primary-hover)] hover:shadow-lg hover:shadow-blue-500/20 active:scale-[0.98]",
       secondary:
-        "bg-transparent border border-[var(--card-border)] text-white hover:border-[var(--accent-primary)] hover:bg-[var(--accent-primary)]/10",
+        "bg-[var(--accent-secondary)] text-white hover:bg-[var(--accent-secondary-hover)] hover:shadow-lg hover:shadow-orange-500/20 active:scale-[0.98]",
+      tertiary:
+        "bg-[var(--accent-tertiary)] text-white hover:bg-[var(--accent-tertiary-hover)] hover:shadow-lg hover:shadow-red-500/20 active:scale-[0.98]",
       ghost:
-        "bg-transparent text-[var(--text-secondary)] hover:text-white hover:bg-white/5",
+        "bg-transparent text-[var(--text-secondary)] hover:text-white hover:bg-gradient-to-r hover:from-blue-500/10 hover:via-orange-500/10 hover:to-red-500/10",
       danger:
-        "bg-red-600 text-white hover:bg-red-700 hover:shadow-lg",
+        "bg-[var(--accent-tertiary)] text-white hover:bg-[var(--accent-tertiary-hover)] hover:shadow-lg hover:shadow-red-500/20",
     };
 
     const sizes = {

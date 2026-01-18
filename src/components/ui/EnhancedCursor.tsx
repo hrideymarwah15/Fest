@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useMotionValue, useSpring } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 
 interface CursorProps {
   children: React.ReactNode;
@@ -11,6 +11,7 @@ const Cursor = ({ children }: CursorProps) => {
   const [mounted, setMounted] = useState(false);
   const [cursorVariant, setCursorVariant] = useState("default");
   const [cursorIcon, setCursorIcon] = useState<string | null>(null);
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
 
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
@@ -18,48 +19,7 @@ const Cursor = ({ children }: CursorProps) => {
   const springX = useSpring(mouseX, { stiffness: 300, damping: 30 });
   const springY = useSpring(mouseY, { stiffness: 300, damping: 30 });
 
-  useEffect(() => {
-    setMounted(true);
-    
-    if (typeof window !== 'undefined') {
-      const handleMouseMove = (e: MouseEvent) => {
-        mouseX.set(e.clientX);
-        mouseY.set(e.clientY);
-      };
-
-      const handleMouseOver = (e: MouseEvent) => {
-        const target = e.target as HTMLElement;
-        
-        // Check for sport icons
-        const sportElement = target.closest('[data-sport]');
-        if (sportElement) {
-          const sportName = sportElement.getAttribute('data-sport');
-          setCursorIcon(getSportIcon(sportName));
-          setCursorVariant("sport");
-          return;
-        }
-
-        // Check for interactive elements
-        if (target.matches('button, a, [role="button"], input, textarea, select, .cursor-pointer')) {
-          setCursorVariant("hover");
-          setCursorIcon(null);
-        } else {
-          setCursorVariant("default");
-          setCursorIcon(null);
-        }
-      };
-
-      document.addEventListener("mousemove", handleMouseMove);
-      document.addEventListener("mouseover", handleMouseOver);
-
-      return () => {
-        document.removeEventListener("mousemove", handleMouseMove);
-        document.removeEventListener("mouseover", handleMouseOver);
-      };
-    }
-  }, [mouseX, mouseY]);
-
-  const getSportIcon = (sportName: string | null): string => {
+  const getSportIcon = useCallback((sportName: string | null): string => {
     if (!sportName) return "⚽";
     
     const icons: Record<string, string> = {
@@ -82,7 +42,57 @@ const Cursor = ({ children }: CursorProps) => {
     };
     
     return icons[sportName.toLowerCase()] || "🎯";
-  };
+  }, []);
+
+  useEffect(() => {
+    setMounted(true);
+    
+    // Detect touch devices
+    if (typeof window !== 'undefined') {
+      const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      setIsTouchDevice(hasTouch);
+    }
+  }, []);
+
+  useEffect(() => {
+    // Don't add event listeners on touch devices or SSR
+    if (typeof window === 'undefined' || isTouchDevice || !mounted) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      mouseX.set(e.clientX);
+      mouseY.set(e.clientY);
+    };
+
+    const handleMouseOver = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      
+      // Check for sport icons
+      const sportElement = target.closest('[data-sport]');
+      if (sportElement) {
+        const sportName = sportElement.getAttribute('data-sport');
+        setCursorIcon(getSportIcon(sportName));
+        setCursorVariant("sport");
+        return;
+      }
+
+      // Check for interactive elements
+      if (target.matches('button, a, [role="button"], input, textarea, select, .cursor-pointer')) {
+        setCursorVariant("hover");
+        setCursorIcon(null);
+      } else {
+        setCursorVariant("default");
+        setCursorIcon(null);
+      }
+    };
+
+    document.addEventListener("mousemove", handleMouseMove, { passive: true });
+    document.addEventListener("mouseover", handleMouseOver, { passive: true });
+
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseover", handleMouseOver);
+    };
+  }, [mouseX, mouseY, isTouchDevice, mounted, getSportIcon]);
 
   const variants = {
     default: {
@@ -108,7 +118,7 @@ const Cursor = ({ children }: CursorProps) => {
     },
   };
 
-  if (!mounted) {
+  if (!mounted || isTouchDevice) {
     return <>{children}</>;
   }
 
