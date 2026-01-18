@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { z } from "zod";
+import { unauthorizedResponse, badRequestResponse, serverErrorResponse } from "@/lib/security";
 
 const toggleSchema = z.object({
   sportId: z.string(),
@@ -13,10 +14,7 @@ export async function POST(req: NextRequest) {
     const session = await auth();
 
     if (!session?.user || (session.user.role !== "ADMIN" && session.user.email !== "admin@sportsfest.com")) {
-      return NextResponse.json(
-        { message: "Unauthorized" },
-        { status: 401 }
-      );
+      return unauthorizedResponse();
     }
 
     const body = await req.json();
@@ -46,16 +44,9 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { message: error.issues[0].message },
-        { status: 400 }
-      );
+      return badRequestResponse(error.issues[0].message);
     }
 
-    console.error("Toggle sport error:", error);
-    return NextResponse.json(
-      { message: error instanceof Error ? error.message : "Failed to toggle sport registration" },
-      { status: 500 }
-    );
+    return serverErrorResponse("Failed to toggle sport registration");
   }
 }

@@ -20,122 +20,242 @@ const Navbar = () => {
     { href: "/contact", label: "Contact" },
   ];
 
+  const navItemVariants = {
+    hidden: { opacity: 0, y: -10 },
+    visible: { opacity: 1, y: 0 },
+  };
+
   return (
     <motion.nav
       initial={{ y: -100 }}
       animate={{ y: 0 }}
-      transition={{ duration: 0.5 }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
       className="fixed top-0 left-0 right-0 z-50 bg-[var(--background)]/80 backdrop-blur-xl border-b border-[var(--card-border)]"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
-          {/* Logo - No navigation */}
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-[var(--accent-primary)] rounded-lg flex items-center justify-center">
-              <span className="font-display text-xl text-white">R</span>
-            </div>
-            <div className="hidden sm:block">
-              <span className="font-display text-xl tracking-wide text-white">
+          {/* Logo - Enhanced with animations */}
+          <motion.div
+            className="flex items-center gap-3"
+            whileHover={{ scale: 1.05 }}
+            transition={{ type: "spring", stiffness: 300 }}
+          >
+            <motion.div
+              className="w-10 h-10 bg-[var(--accent-primary)] rounded-lg flex items-center justify-center cursor-pointer"
+              whileHover={{
+                rotate: [0, -5, 5, 0],
+                scale: 1.1,
+              }}
+              transition={{ duration: 0.3 }}
+            >
+              <motion.span
+                className="font-display text-xl text-white"
+                animate={{
+                  scale: [1, 1.1, 1],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              >
+                R
+              </motion.span>
+            </motion.div>
+            <motion.div
+              className="hidden sm:block"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+            >
+              <motion.span
+                className="font-display text-xl tracking-wide text-white"
+                whileHover={{ scale: 1.02 }}
+                transition={{ type: "spring", stiffness: 400 }}
+              >
                 RISHIHOOD
-              </span>
-              <span className="block text-[10px] text-[var(--text-muted)] uppercase tracking-widest">
+              </motion.span>
+              <motion.span
+                className="block text-[10px] text-[var(--text-muted)] uppercase tracking-widest"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4, duration: 0.5 }}
+              >
                 Sports Fest 2026
-              </span>
-            </div>
-          </div>
+              </motion.span>
+            </motion.div>
+          </motion.div>
 
           {/* Desktop Navigation - Hidden when logged in */}
           {!session && (
-            <div className="hidden md:flex items-center gap-8">
+            <motion.div
+              className="hidden md:flex items-center gap-8"
+              variants={{
+                hidden: { opacity: 0 },
+                visible: {
+                  opacity: 1,
+                  transition: {
+                    staggerChildren: 0.1,
+                    delayChildren: 0.3,
+                  },
+                },
+              }}
+              initial="hidden"
+              animate="visible"
+            >
               {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="text-sm font-medium text-[var(--text-secondary)] hover:text-white transition-colors uppercase tracking-wide"
-                >
-                  {link.label}
-                </Link>
+                <motion.div key={link.href} variants={navItemVariants}>
+                  <Link
+                    href={link.href}
+                    className={`text-sm font-medium uppercase tracking-wide transition-all duration-300 ${
+                      pathname === link.href
+                        ? "text-[var(--accent-primary)]"
+                        : "text-[var(--text-secondary)] hover:text-white"
+                    }`}
+                  >
+                    <motion.span
+                      whileHover={{
+                        scale: 1.05,
+                        textShadow: "0 0 8px rgba(96, 165, 250, 0.5)",
+                      }}
+                      transition={{ type: "spring", stiffness: 300 }}
+                    >
+                      {link.label}
+                    </motion.span>
+                  </Link>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           )}
 
           {/* Auth Buttons */}
-          <div className="hidden md:flex items-center gap-4">
+          <motion.div
+            className="hidden md:flex items-center gap-4"
+            variants={{
+              hidden: { opacity: 0 },
+              visible: {
+                opacity: 1,
+                transition: {
+                  staggerChildren: 0.1,
+                  delayChildren: 0.5,
+                },
+              },
+            }}
+            initial="hidden"
+            animate="visible"
+          >
             {session ? (
               <div className="flex items-center gap-4">
                 {session.user?.role === "ADMIN" && (
-                  <Link href="/admin">
+                  <motion.div variants={navItemVariants}>
+                    <Link href="/admin">
+                      <Button variant="ghost" size="sm">
+                        Admin
+                      </Button>
+                    </Link>
+                  </motion.div>
+                )}
+                <motion.div variants={navItemVariants}>
+                  <Link href="/profile">
                     <Button variant="ghost" size="sm">
-                      Admin
+                      <User className="w-4 h-4 mr-2" />
+                      Profile
                     </Button>
                   </Link>
-                )}
-                <Link href="/profile">
-                  <Button variant="ghost" size="sm">
-                    <User className="w-4 h-4 mr-2" />
-                    Profile
+                </motion.div>
+                <motion.div variants={navItemVariants}>
+                  <Link href="/dashboard">
+                    <Button variant="secondary" size="sm">
+                      Dashboard
+                    </Button>
+                  </Link>
+                </motion.div>
+                <motion.div variants={navItemVariants}>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => signOut()}
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Sign Out
                   </Button>
-                </Link>
-                <Link href="/dashboard">
-                  <Button variant="secondary" size="sm">
-                    Dashboard
-                  </Button>
-                </Link>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => signOut()}
-                >
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Sign Out
-                </Button>
+                </motion.div>
               </div>
             ) : (
               <>
-                <Link href="/auth/signin">
-                  <Button variant="ghost" size="sm">
-                    Sign In
-                  </Button>
-                </Link>
-                <Link href="/sports">
-                  <Button size="sm">Register Now</Button>
-                </Link>
+                <motion.div variants={navItemVariants}>
+                  <Link href="/auth/signin">
+                    <Button variant="ghost" size="sm">
+                      Sign In
+                    </Button>
+                  </Link>
+                </motion.div>
+                <motion.div variants={navItemVariants}>
+                  <Link href="/sports">
+                    <Button size="sm">Register Now</Button>
+                  </Link>
+                </motion.div>
               </>
             )}
-          </div>
+          </motion.div>
 
           {/* Mobile Menu Button */}
-          <button
+          <motion.button
             onClick={() => setIsOpen(!isOpen)}
             className="md:hidden p-2 text-white"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            animate={{ rotate: isOpen ? 180 : 0 }}
+            transition={{ duration: 0.3 }}
           >
             {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
+          </motion.button>
         </div>
 
         {/* Mobile Menu */}
         <motion.div
           initial={false}
-          animate={{ height: isOpen ? "auto" : 0 }}
+          animate={{
+            height: isOpen ? "auto" : 0,
+            opacity: isOpen ? 1 : 0,
+          }}
+          transition={{ duration: 0.3, ease: "easeInOut" }}
           className="md:hidden overflow-hidden"
         >
-          <div className="py-4 space-y-4">
+          <motion.div
+            className="py-4 space-y-4"
+            variants={{
+              hidden: { opacity: 0 },
+              visible: {
+                opacity: 1,
+                transition: {
+                  staggerChildren: 0.1,
+                },
+              },
+            }}
+            initial="hidden"
+            animate={isOpen ? "visible" : "hidden"}
+          >
             {/* Navigation Links - Hidden when logged in */}
             {!session && (
               <>
                 {navLinks.map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    onClick={() => setIsOpen(false)}
-                    className="block text-sm font-medium text-[var(--text-secondary)] hover:text-white transition-colors uppercase tracking-wide"
-                  >
-                    {link.label}
-                  </Link>
+                  <motion.div key={link.href} variants={navItemVariants}>
+                    <Link
+                      href={link.href}
+                      onClick={() => setIsOpen(false)}
+                      className="block text-sm font-medium text-[var(--text-secondary)] hover:text-white transition-colors uppercase tracking-wide"
+                    >
+                      {link.label}
+                    </Link>
+                  </motion.div>
                 ))}
               </>
             )}
-            <div className="pt-4 border-t border-[var(--card-border)] space-y-3">
+            <motion.div
+              className="pt-4 border-t border-[var(--card-border)] space-y-3"
+              variants={navItemVariants}
+            >
               {session ? (
                 <>
                   {pathname === "/dashboard" ? (
@@ -172,8 +292,8 @@ const Navbar = () => {
                   </Link>
                 </>
               )}
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </motion.div>
       </div>
     </motion.nav>

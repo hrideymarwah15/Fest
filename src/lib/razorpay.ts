@@ -1,17 +1,18 @@
 import Razorpay from "razorpay";
 import crypto from "crypto";
+import { config } from "@/lib/config";
 
 // Lazy initialization to avoid build-time errors when env vars are missing
 let razorpayInstance: Razorpay | null = null;
 
 function getRazorpay(): Razorpay {
   if (!razorpayInstance) {
-    if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+    if (!config.razorpay.keyId || !config.razorpay.keySecret) {
       throw new Error("Razorpay credentials not configured");
     }
     razorpayInstance = new Razorpay({
-      key_id: process.env.RAZORPAY_KEY_ID,
-      key_secret: process.env.RAZORPAY_KEY_SECRET,
+      key_id: config.razorpay.keyId,
+      key_secret: config.razorpay.keySecret,
     });
   }
   return razorpayInstance;
@@ -30,7 +31,7 @@ export function verifyRazorpaySignature(
     return false;
   }
 
-  const secret = process.env.RAZORPAY_KEY_SECRET;
+  const secret = config.razorpay.keySecret;
   if (!secret) {
     console.error("RAZORPAY_KEY_SECRET not configured");
     return false;
@@ -64,7 +65,7 @@ export function verifyWebhookSignature(
     return false;
   }
 
-  const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
+  const secret = config.razorpay.webhookSecret;
   if (!secret) {
     console.error("RAZORPAY_WEBHOOK_SECRET not configured");
     return false;

@@ -1,17 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import {
+  profileUpdateSchema,
+  sanitizeInput,
+  rateLimit,
+  rateLimitResponse,
+  unauthorizedResponse,
+  badRequestResponse,
+  notFoundResponse,
+  serverErrorResponse
+} from "@/lib/security";
+import { z } from "zod";
 
 // Get user profile
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     const session = await auth();
 
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { message: "Unauthorized" },
-        { status: 401 }
-      );
+      return unauthorizedResponse();
     }
 
     const user = await db.user.findUnique({
@@ -28,10 +36,7 @@ export async function GET(req: NextRequest) {
     });
 
     if (!user) {
-      return NextResponse.json(
-        { message: "User not found" },
-        { status: 404 }
-      );
+      return notFoundResponse("User");
     }
 
     return NextResponse.json({
@@ -44,12 +49,8 @@ export async function GET(req: NextRequest) {
       image: user.image,
       createdAt: user.createdAt,
     });
-  } catch (error) {
-    console.error("Error fetching profile:", error);
-    return NextResponse.json(
-      { message: "Failed to fetch profile" },
-      { status: 500 }
-    );
+  } catch {
+    return serverErrorResponse("Failed to fetch profile");
   }
 }
 
@@ -59,19 +60,49 @@ export async function PATCH(req: NextRequest) {
     const session = await auth();
 
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { message: "Unauthorized" },
-        { status: 401 }
-      );
+      return unauthorizedResponse();
+    }
+
+    // Rate limiting: 10 updates per minute per user
+    const rateLimitResult = rateLimit(`profile-update:${session.user.id}`, 10, 60000);
+    if (!rateLimitResult.allowed) {
+      return rateLimitResponse(rateLimitResult.resetTime);
     }
 
     const body = await req.json();
-    const { name, phone, collegeId } = body;
+
+    // Validate input
+    const validationResult = profileUpdateSchema.safeParse(body);
+    if (!validationResult.success) {
+      return badRequestResponse(validationResult.error.issues[0]?.message || "Invalid input");
+    }
+
+    const { phone, collegeId } = validationResult.data;
+
+    // Sanitize name if provided
+    const sanitizedName = body.name ? sanitizeInput(body.name) : undefined;
+
+    // Validate name if provided
+    if (sanitizedName !== undefined) {
+      if (sanitizedName.length < 2 || sanitizedName.length > 100) {
+        return badRequestResponse("Name must be between 2 and 100 characters");
+      }
+    }
+
+    // If collegeId is provided, verify it exists
+    if (collegeId) {
+      const college = await db.college.findUnique({
+        where: { id: collegeId },
+      });
+      if (!college) {
+        return badRequestResponse("Invalid college selected");
+      }
+    }
 
     const user = await db.user.update({
       where: { id: session.user.id },
       data: {
-        ...(name && { name }),
+        ...(sanitizedName && { name: sanitizedName }),
         ...(phone && { phone }),
         ...(collegeId && { collegeId }),
       },
@@ -96,10 +127,9 @@ export async function PATCH(req: NextRequest) {
       image: user.image,
     });
   } catch (error) {
-    console.error("Error updating profile:", error);
-    return NextResponse.json(
-      { message: "Failed to update profile" },
-      { status: 500 }
-    );
+    if (error instanceof z.ZodError) {
+      return badRequestResponse(error.issues[0]?.message || "Invalid input");
+    }
+    return serverErrorResponse("Failed to update profile");
   }
 }

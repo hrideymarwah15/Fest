@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { unauthorizedResponse, serverErrorResponse } from "@/lib/security";
 
 // Export registrations as CSV
 export async function GET(req: NextRequest) {
@@ -8,10 +9,7 @@ export async function GET(req: NextRequest) {
     const session = await auth();
 
     if (!session?.user || (session.user.role !== "ADMIN" && session.user.email !== "admin@sportsfest.com")) {
-      return NextResponse.json(
-        { message: "Unauthorized" },
-        { status: 401 }
-      );
+      return unauthorizedResponse();
     }
 
     const { searchParams } = new URL(req.url);
@@ -114,11 +112,7 @@ export async function GET(req: NextRequest) {
         "Content-Disposition": `attachment; filename="registrations-${Date.now()}.csv"`,
       },
     });
-  } catch (error) {
-    console.error("Error exporting registrations:", error);
-    return NextResponse.json(
-      { message: "Failed to export registrations" },
-      { status: 500 }
-    );
+  } catch {
+    return serverErrorResponse("Failed to export registrations");
   }
 }

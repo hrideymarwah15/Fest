@@ -7,3 +7,6 @@ export { Modal } from "./Modal";
 export { Progress } from "./Progress";
 export { Accordion } from "./Accordion";
 export { SearchableSelect } from "./SearchableSelect";
+export { default as PageLoader } from "./PageLoader";
+export { default as GlitchText } from "./GlitchText";
+export { default as PageTransition } from "./PageTransition";

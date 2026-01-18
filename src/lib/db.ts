@@ -1,7 +1,8 @@
 import { PrismaClient } from "@prisma/client";
+import { config } from "@/lib/config";
 
 // Determine database type from connection string
-const databaseUrl = process.env.DATABASE_URL || "";
+const databaseUrl = config.database.url || "";
 const isPostgres = databaseUrl.startsWith("postgresql://") || databaseUrl.startsWith("postgres://");
 const isSqlite = databaseUrl.startsWith("file:");
 
@@ -12,7 +13,7 @@ const globalForPrisma = globalThis as unknown as {
 
 // Create PrismaClient with appropriate adapter
 async function createPrismaClient(): Promise<PrismaClient> {
-  const logConfig = process.env.NODE_ENV === "development"
+  const logConfig = config.app.isDevelopment
     ? ["query" as const, "error" as const, "warn" as const]
     : ["error" as const];
 

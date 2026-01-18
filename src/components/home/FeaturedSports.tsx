@@ -5,6 +5,9 @@ import { useRef } from "react";
 import Link from "next/link";
 import { Card, Badge, Button } from "@/components/ui";
 import { ArrowRight, Users, User, Clock } from "lucide-react";
+import { useScrollAnimation } from "@/hooks/useAnimations";
+import { containerVariants, itemVariants, cardVariants } from "@/lib/animations";
+import CursorBackground from "@/components/ui/CursorBackground";
 
 // Featured sports data (in production, this would come from the database)
 const featuredSports = [
@@ -55,53 +58,106 @@ const featuredSports = [
 ];
 
 const FeaturedSports = () => {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const { ref, isVisible } = useScrollAnimation();
 
   return (
-    <section className="py-24 bg-[var(--background)] relative overflow-hidden">
-      {/* Background accent */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[var(--accent-primary)] rounded-full blur-[300px] opacity-5" />
+    <CursorBackground
+      className="py-24 bg-[var(--background)] relative overflow-hidden"
+      intensity={0.8}
+      colors={["#60A5FA", "#8B5CF6", "#EC4899"]}
+    >
+      <section className="relative overflow-hidden">
+      {/* Animated Background */}
+      <motion.div
+        className="absolute top-0 right-0 w-[500px] h-[500px] bg-[var(--accent-primary)] rounded-full blur-[300px] opacity-5"
+        animate={{
+          scale: [1, 1.2, 1],
+          opacity: [0.05, 0.1, 0.05],
+        }}
+        transition={{
+          duration: 8,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+      />
 
       <div ref={ref} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.5 }}
+          animate={isVisible ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6 }}
           className="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-12 gap-4"
         >
           <div>
-            <span className="text-sm font-semibold text-[var(--accent-primary)] uppercase tracking-wider mb-2 block">
+            <motion.span
+              className="text-sm font-semibold text-[var(--accent-primary)] uppercase tracking-wider mb-2 block"
+              initial={{ opacity: 0, x: -20 }}
+              animate={isVisible ? { opacity: 1, x: 0 } : {}}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
               Featured Events
-            </span>
-            <h2 className="font-display text-4xl sm:text-5xl text-white">
+            </motion.span>
+            <motion.h2
+              className="font-display text-4xl sm:text-5xl text-white"
+              initial={{ opacity: 0, y: 20 }}
+              animate={isVisible ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.6, delay: 0.3 }}
+            >
               POPULAR SPORTS
-            </h2>
+            </motion.h2>
           </div>
-          <Link href="/sports">
-            <Button variant="ghost" size="sm">
-              View All Sports
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
-          </Link>
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={isVisible ? { opacity: 1, x: 0 } : {}}
+            transition={{ duration: 0.5, delay: 0.4 }}
+          >
+            <Link href="/sports">
+              <Button variant="ghost" size="sm" className="group">
+                View All Sports
+                <motion.div
+                  className="ml-2"
+                  animate={{ x: [0, 5, 0] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                >
+                  <ArrowRight className="w-4 h-4" />
+                </motion.div>
+              </Button>
+            </Link>
+          </motion.div>
         </motion.div>
 
         {/* Sports Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate={isVisible ? "visible" : "hidden"}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+        >
           {featuredSports.map((sport, index) => (
             <motion.div
               key={sport.id}
-              initial={{ opacity: 0, y: 30 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
+              variants={itemVariants}
+              whileHover="hover"
+              whileTap="tap"
+              data-sport={sport.slug}
             >
               <Link href={`/sports/${sport.slug}`}>
-                <Card glow className="h-full group">
+                <Card glow className="h-full group overflow-hidden">
                   {/* Image */}
                   <div className="relative h-48 bg-gradient-to-br from-[var(--card-border)] to-[var(--card-bg)] overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-t from-[var(--card-bg)] via-transparent to-transparent z-10" />
-                    <div className="absolute top-4 left-4 z-20">
+                    <motion.div
+                      className="absolute inset-0 bg-gradient-to-t from-[var(--card-bg)] via-transparent to-transparent z-10"
+                      initial={{ opacity: 0 }}
+                      whileHover={{ opacity: 0.8 }}
+                      transition={{ duration: 0.3 }}
+                    />
+                    <motion.div
+                      className="absolute top-4 left-4 z-20"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ delay: 0.5 + index * 0.1, type: "spring" }}
+                    >
                       <Badge variant={sport.type === "TEAM" ? "team" : "individual"}>
                         {sport.type === "TEAM" ? (
                           <Users className="w-3 h-3 mr-1" />
@@ -110,69 +166,115 @@ const FeaturedSports = () => {
                         )}
                         {sport.type}
                       </Badge>
-                    </div>
-                    {/* Sport Icon Placeholder */}
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="font-display text-6xl text-white/10 group-hover:text-[var(--accent-primary)]/20 transition-colors">
+                    </motion.div>
+                    {/* Animated Sport Icon */}
+                    <motion.div
+                      className="absolute inset-0 flex items-center justify-center"
+                      whileHover={{ scale: 1.1 }}
+                      transition={{ type: "spring", stiffness: 300 }}
+                    >
+                      <motion.span
+                        className="font-display text-6xl text-white/10 group-hover:text-[var(--accent-primary)]/20 transition-colors"
+                        animate={{
+                          rotate: [0, 5, -5, 0],
+                        }}
+                        transition={{
+                          duration: 4,
+                          repeat: Infinity,
+                          ease: "easeInOut",
+                        }}
+                      >
                         {sport.name.slice(0, 2).toUpperCase()}
-                      </span>
-                    </div>
+                      </motion.span>
+                    </motion.div>
                   </div>
 
                   {/* Content */}
-                  <div className="p-5">
-                    <h3 className="font-display text-xl text-white mb-2 group-hover:text-[var(--accent-primary)] transition-colors">
+                  <motion.div
+                    className="p-5"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.3 + index * 0.1 }}
+                  >
+                    <motion.h3
+                      className="font-display text-xl text-white mb-2 group-hover:text-[var(--accent-primary)] transition-colors"
+                      whileHover={{ scale: 1.05 }}
+                    >
                       {sport.name.toUpperCase()}
-                    </h3>
+                    </motion.h3>
 
-                    <div className="flex items-center gap-2 text-sm text-[var(--text-muted)] mb-4">
+                    <motion.div
+                      className="flex items-center gap-2 text-sm text-[var(--text-muted)] mb-4"
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.4 + index * 0.1 }}
+                    >
                       <Clock className="w-4 h-4" />
                       {sport.eventDate}
-                    </div>
+                    </motion.div>
 
-                    {/* Slots Progress */}
+                    {/* Animated Slots Progress */}
                     <div className="mb-4">
-                      <div className="flex justify-between text-xs mb-1">
+                      <motion.div
+                        className="flex justify-between text-xs mb-1"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.5 + index * 0.1 }}
+                      >
                         <span className="text-[var(--text-secondary)]">
                           Slots Filled
                         </span>
                         <span className="text-[var(--accent-primary)] font-semibold">
                           {sport.filledSlots}/{sport.maxSlots}
                         </span>
-                      </div>
+                      </motion.div>
                       <div className="h-1.5 bg-[var(--card-border)] rounded-full overflow-hidden">
                         <motion.div
                           initial={{ width: 0 }}
                           animate={
-                            isInView
+                            isVisible
                               ? {
                                   width: `${(sport.filledSlots / sport.maxSlots) * 100}%`,
                                 }
                               : {}
                           }
-                          transition={{ duration: 1, delay: 0.5 + index * 0.1 }}
-                          className="h-full bg-[var(--accent-primary)] rounded-full"
+                          transition={{
+                            duration: 1.5,
+                            delay: 0.6 + index * 0.1,
+                            ease: "easeOut",
+                          }}
+                          className="h-full bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] rounded-full"
                         />
                       </div>
                     </div>
 
-                    {/* Fee */}
-                    <div className="flex items-center justify-between">
-                      <span className="text-2xl font-bold text-white">
+                    {/* Animated Fee */}
+                    <motion.div
+                      className="flex items-center justify-between"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.7 + index * 0.1 }}
+                    >
+                      <motion.span
+                        className="text-2xl font-bold text-white"
+                        whileHover={{ scale: 1.1 }}
+                        transition={{ type: "spring", stiffness: 400 }}
+                      >
                         ₹{sport.fee}
-                      </span>
+                      </motion.span>
                       <span className="text-xs text-[var(--text-muted)]">
                         per {sport.type === "TEAM" ? "team" : "player"}
                       </span>
-                    </div>
-                  </div>
+                    </motion.div>
+                  </motion.div>
                 </Card>
               </Link>
             </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
+    </CursorBackground>
   );
 };
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { unauthorizedResponse, badRequestResponse, serverErrorResponse } from "@/lib/security";
 
 // PATCH update user role
 export async function PATCH(
@@ -12,18 +13,12 @@ export async function PATCH(
         const session = await auth();
 
         if (!session?.user || session.user.role !== "ADMIN") {
-            return NextResponse.json(
-                { message: "Unauthorized" },
-                { status: 401 }
-            );
+            return unauthorizedResponse();
         }
 
         // Prevent admin from changing their own role
         if (session.user.id === id) {
-            return NextResponse.json(
-                { message: "Cannot change your own role" },
-                { status: 400 }
-            );
+            return badRequestResponse("Cannot change your own role");
         }
 
         const body = await req.json();
@@ -41,12 +36,8 @@ export async function PATCH(
         });
 
         return NextResponse.json(user);
-    } catch (error) {
-        console.error("Error updating user:", error);
-        return NextResponse.json(
-            { message: "Failed to update user" },
-            { status: 500 }
-        );
+    } catch {
+        return serverErrorResponse("Failed to update user");
     }
 }
 
@@ -60,18 +51,12 @@ export async function DELETE(
         const session = await auth();
 
         if (!session?.user || session.user.role !== "ADMIN") {
-            return NextResponse.json(
-                { message: "Unauthorized" },
-                { status: 401 }
-            );
+            return unauthorizedResponse();
         }
 
         // Prevent admin from deleting themselves
         if (session.user.id === id) {
-            return NextResponse.json(
-                { message: "Cannot delete your own account" },
-                { status: 400 }
-            );
+            return badRequestResponse("Cannot delete your own account");
         }
 
         // Check if user has registrations
@@ -80,12 +65,7 @@ export async function DELETE(
         });
 
         if (registrations > 0) {
-            // Option: Force delete related registrations or block
-            // For now, let's block
-            return NextResponse.json(
-                { message: "Cannot delete user with existing registrations" },
-                { status: 400 }
-            );
+            return badRequestResponse("Cannot delete user with existing registrations");
         }
 
         await db.user.delete({
@@ -93,11 +73,7 @@ export async function DELETE(
         });
 
         return NextResponse.json({ message: "User deleted" });
-    } catch (error) {
-        console.error("Error deleting user:", error);
-        return NextResponse.json(
-            { message: "Failed to delete user" },
-            { status: 500 }
-        );
+    } catch {
+        return serverErrorResponse("Failed to delete user");
     }
 }

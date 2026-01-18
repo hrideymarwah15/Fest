@@ -1,17 +1,15 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { unauthorizedResponse, serverErrorResponse } from "@/lib/security";
 
 // Admin API for dashboard stats
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     const session = await auth();
 
     if (!session?.user || (session.user.role !== "ADMIN" && session.user.email !== "admin@sportsfest.com")) {
-      return NextResponse.json(
-        { message: "Unauthorized" },
-        { status: 401 }
-      );
+      return unauthorizedResponse();
     }
 
     // Get total registrations
@@ -87,11 +85,7 @@ export async function GET(req: NextRequest) {
       })),
       collegeStats,
     });
-  } catch (error) {
-    console.error("Error fetching stats:", error);
-    return NextResponse.json(
-      { message: "Failed to fetch stats" },
-      { status: 500 }
-    );
+  } catch {
+    return serverErrorResponse("Failed to fetch stats");
   }
 }

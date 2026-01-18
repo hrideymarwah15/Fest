@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers/Providers";
+import EnhancedCursor from "@/components/ui/EnhancedCursor";
+import { ScrollProgress } from "@/components/ui/ScrollAnimations";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -37,7 +39,12 @@ export default function RootLayout({
         <script src="https://checkout.razorpay.com/v1/checkout.js" async></script>
       </head>
       <body className={`${inter.variable} font-sans antialiased bg-[var(--background)] text-[var(--foreground)]`}>
-        <Providers>{children}</Providers>
+        <Providers>
+          <EnhancedCursor>
+            <ScrollProgress />
+            {children}
+          </EnhancedCursor>
+        </Providers>
       </body>
     </html>
   );

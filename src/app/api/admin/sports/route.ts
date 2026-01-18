@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { validateAdminAccess, sportCreationSchema, sanitizeInput } from "@/lib/security";
+import { validateAdminAccess, sportCreationSchema, sanitizeInput, badRequestResponse, serverErrorResponse } from "@/lib/security";
 
 // GET all sports (admin)
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     await validateAdminAccess();
 
@@ -17,12 +17,8 @@ export async function GET(req: NextRequest) {
     });
 
     return NextResponse.json(sports);
-  } catch (error) {
-    console.error("Error fetching sports:", error);
-    return NextResponse.json(
-      { message: "Failed to fetch sports" },
-      { status: 500 }
-    );
+  } catch {
+    return serverErrorResponse("Failed to fetch sports");
   }
 }
 
@@ -55,10 +51,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (existingSport) {
-      return NextResponse.json(
-        { message: "Sport with this slug already exists" },
-        { status: 400 }
-      );
+      return badRequestResponse("Sport with this slug already exists");
     }
 
     const sport = await db.sport.create({
@@ -81,11 +74,7 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json(sport, { status: 201 });
-  } catch (error) {
-    console.error("Error creating sport:", error);
-    return NextResponse.json(
-      { message: "Failed to create sport" },
-      { status: 500 }
-    );
+  } catch {
+    return serverErrorResponse("Failed to create sport");
   }
 }

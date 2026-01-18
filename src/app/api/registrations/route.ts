@@ -3,15 +3,30 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { z } from "zod";
 import { createRazorpayOrder } from "@/lib/razorpay";
-import { registrationSchema, sanitizeInput, badRequestResponse, notFoundResponse, serverErrorResponse } from "@/lib/security";
+import {
+  registrationSchema,
+  sanitizeInput,
+  rateLimit,
+  rateLimitResponse,
+  unauthorizedResponse,
+  badRequestResponse,
+  notFoundResponse,
+  serverErrorResponse
+} from "@/lib/security";
 import { logTransaction } from "@/lib/logger";
 
 export async function POST(req: NextRequest) {
   try {
     const session = await auth();
 
-    if (!session?.user) {
-      return badRequestResponse("Unauthorized");
+    if (!session?.user?.id) {
+      return unauthorizedResponse();
+    }
+
+    // Rate limiting: 10 registrations per minute per user
+    const rateLimitResult = rateLimit(`registration:${session.user.id}`, 10, 60000);
+    if (!rateLimitResult.allowed) {
+      return rateLimitResponse(rateLimitResult.resetTime);
     }
 
     const body = await req.json();
@@ -250,13 +265,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Improved error reporting for debugging
-    let message = "Failed to create registration";
-    if (error instanceof Error && error.message) {
-      message += ": " + error.message;
-    } else if (typeof error === "string") {
-      message += ": " + error;
-    }
-    console.error("Registration error:", error);
+    const message = "Failed to create registration";
     return serverErrorResponse(message);
   }
 }
@@ -265,11 +274,8 @@ export async function GET(req: NextRequest) {
   try {
     const session = await auth();
 
-    if (!session?.user) {
-      return NextResponse.json(
-        { message: "Unauthorized" },
-        { status: 401 }
-      );
+    if (!session?.user?.id) {
+      return unauthorizedResponse();
     }
 
     const registrations = await db.registration.findMany({
@@ -283,11 +289,7 @@ export async function GET(req: NextRequest) {
     });
 
     return NextResponse.json(registrations);
-  } catch (error) {
-    console.error("Error fetching registrations:", error);
-    return NextResponse.json(
-      { message: "Failed to fetch registrations" },
-      { status: 500 }
-    );
+  } catch {
+    return serverErrorResponse("Failed to fetch registrations");
   }
 }

@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { serverErrorResponse } from "@/lib/security";
 
 export async function GET() {
   try {
@@ -25,11 +26,7 @@ export async function GET() {
     });
 
     return NextResponse.json(sports);
-  } catch (error) {
-    console.error("Error fetching sports:", error);
-    return NextResponse.json(
-      { message: "Failed to fetch sports" },
-      { status: 500 }
-    );
+  } catch {
+    return serverErrorResponse("Failed to fetch sports");
   }
 }

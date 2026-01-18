@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { unauthorizedResponse, serverErrorResponse } from "@/lib/security";
 
 // GET all users
 export async function GET(req: NextRequest) {
@@ -8,10 +9,7 @@ export async function GET(req: NextRequest) {
         const session = await auth();
 
         if (!session?.user || session.user.role !== "ADMIN") {
-            return NextResponse.json(
-                { message: "Unauthorized" },
-                { status: 401 }
-            );
+            return unauthorizedResponse();
         }
 
         const { searchParams } = new URL(req.url);
@@ -34,11 +32,7 @@ export async function GET(req: NextRequest) {
         });
 
         return NextResponse.json(users);
-    } catch (error) {
-        console.error("Error fetching users:", error);
-        return NextResponse.json(
-            { message: "Failed to fetch users" },
-            { status: 500 }
-        );
+    } catch {
+        return serverErrorResponse("Failed to fetch users");
     }
 }

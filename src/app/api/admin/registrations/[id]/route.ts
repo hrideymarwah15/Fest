@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { unauthorizedResponse, notFoundResponse, serverErrorResponse } from "@/lib/security";
 
 // DELETE cancel registration
 export async function DELETE(
@@ -12,10 +13,7 @@ export async function DELETE(
     const session = await auth();
 
     if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json(
-        { message: "Unauthorized" },
-        { status: 401 }
-      );
+      return unauthorizedResponse();
     }
 
     // Get registration details before deletion
@@ -28,10 +26,7 @@ export async function DELETE(
     });
 
     if (!registration) {
-      return NextResponse.json(
-        { message: "Registration not found" },
-        { status: 404 }
-      );
+      return notFoundResponse("Registration");
     }
 
     // Delete the registration and related payment
@@ -53,11 +48,7 @@ export async function DELETE(
       message: "Registration cancelled successfully",
       registration,
     });
-  } catch (error) {
-    console.error("Error cancelling registration:", error);
-    return NextResponse.json(
-      { message: "Failed to cancel registration" },
-      { status: 500 }
-    );
+  } catch {
+    return serverErrorResponse("Failed to cancel registration");
   }
 }

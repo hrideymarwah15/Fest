@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { verifyRazorpaySignature } from "@/lib/razorpay";
+import { badRequestResponse, notFoundResponse, serverErrorResponse } from "@/lib/security";
 
 export async function POST(req: NextRequest) {
   try {
@@ -15,10 +16,7 @@ export async function POST(req: NextRequest) {
     );
 
     if (!isValid) {
-      return NextResponse.json(
-        { message: "Invalid payment signature" },
-        { status: 400 }
-      );
+      return badRequestResponse("Invalid payment signature");
     }
 
     // Use transaction for atomic updates and idempotency
@@ -68,21 +66,14 @@ export async function POST(req: NextRequest) {
     });
 
     if (!payment) {
-      return NextResponse.json(
-        { message: "Payment not found" },
-        { status: 404 }
-      );
+      return notFoundResponse("Payment");
     }
 
     return NextResponse.json({
       message: "Payment verified successfully",
       registrationId: payment.registrationId,
     });
-  } catch (error) {
-    console.error("Payment verification error:", error);
-    return NextResponse.json(
-      { message: "Payment verification failed" },
-      { status: 500 }
-    );
+  } catch {
+    return serverErrorResponse("Payment verification failed");
   }
 }

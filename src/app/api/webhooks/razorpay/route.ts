@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import crypto from "crypto";
+import { verifyWebhookSignature } from "@/lib/razorpay";
 import { logTransaction } from "@/lib/logger";
 
 // Razorpay webhook handler
@@ -16,16 +16,12 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Verify webhook signature
-    const expectedSignature = crypto
-      .createHmac("sha256", process.env.RAZORPAY_WEBHOOK_SECRET!)
-      .update(body)
-      .digest("hex");
-
-    if (signature !== expectedSignature) {
+    // Verify webhook signature using timing-safe comparison
+    const isValid = verifyWebhookSignature(body, signature);
+    if (!isValid) {
       return NextResponse.json(
         { message: "Invalid signature" },
-        { status: 400 }
+        { status: 401 }
       );
     }
 

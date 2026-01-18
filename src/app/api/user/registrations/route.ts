@@ -1,17 +1,15 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { unauthorizedResponse, serverErrorResponse } from "@/lib/security";
 
 // Get user registrations
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     const session = await auth();
 
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { message: "Unauthorized" },
-        { status: 401 }
-      );
+      return unauthorizedResponse();
     }
 
     const registrations = await db.registration.findMany({
@@ -47,11 +45,7 @@ export async function GET(req: NextRequest) {
     });
 
     return NextResponse.json(registrations);
-  } catch (error) {
-    console.error("Error fetching user registrations:", error);
-    return NextResponse.json(
-      { message: "Failed to fetch registrations" },
-      { status: 500 }
-    );
+  } catch {
+    return serverErrorResponse("Failed to fetch registrations");
   }
 }

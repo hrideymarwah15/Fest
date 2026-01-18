@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { serverErrorResponse } from "@/lib/security";
 
 // Get all colleges (public)
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     const colleges = await db.college.findMany({
       select: {
@@ -15,11 +16,7 @@ export async function GET(req: NextRequest) {
     });
 
     return NextResponse.json(colleges);
-  } catch (error) {
-    console.error("Error fetching colleges:", error);
-    return NextResponse.json(
-      { message: "Failed to fetch colleges" },
-      { status: 500 }
-    );
+  } catch {
+    return serverErrorResponse("Failed to fetch colleges");
   }
 }

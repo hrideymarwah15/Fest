@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { sanitizeInput, unauthorizedResponse, notFoundResponse, serverErrorResponse } from "@/lib/security";
 
 // GET single sport
 export async function GET(
@@ -12,10 +13,7 @@ export async function GET(
     const session = await auth();
 
     if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json(
-        { message: "Unauthorized" },
-        { status: 401 }
-      );
+      return unauthorizedResponse();
     }
 
     const sport = await db.sport.findUnique({
@@ -28,19 +26,12 @@ export async function GET(
     });
 
     if (!sport) {
-      return NextResponse.json(
-        { message: "Sport not found" },
-        { status: 404 }
-      );
+      return notFoundResponse("Sport");
     }
 
     return NextResponse.json(sport);
-  } catch (error) {
-    console.error("Error fetching sport:", error);
-    return NextResponse.json(
-      { message: "Failed to fetch sport" },
-      { status: 500 }
-    );
+  } catch {
+    return serverErrorResponse("Failed to fetch sport");
   }
 }
 
@@ -54,10 +45,7 @@ export async function PATCH(
     const session = await auth();
 
     if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json(
-        { message: "Unauthorized" },
-        { status: 401 }
-      );
+      return unauthorizedResponse();
     }
 
     const body = await req.json();
@@ -79,11 +67,16 @@ export async function PATCH(
       gender,
     } = body;
 
+    // Sanitize string inputs
+    const sanitizedName = name ? sanitizeInput(name) : undefined;
+    const sanitizedDescription = description ? sanitizeInput(description) : undefined;
+    const sanitizedVenue = venue ? sanitizeInput(venue) : undefined;
+
     const sport = await db.sport.update({
       where: { id },
       data: {
-        ...(name && { name }),
-        ...(description && { description }),
+        ...(sanitizedName && { name: sanitizedName }),
+        ...(sanitizedDescription && { description: sanitizedDescription }),
         ...(type && { type }),
         ...(gender && { gender }),
         ...(teamSize && { teamSize }),
@@ -93,7 +86,7 @@ export async function PATCH(
         ...(fee !== undefined && { fee }),
         ...(maxSlots !== undefined && { maxSlots }),
         ...(imageUrl && { imageUrl }),
-        ...(venue && { venue }),
+        ...(sanitizedVenue && { venue: sanitizedVenue }),
         ...(schedule && { schedule }),
         ...(isActive !== undefined && { isActive }),
         ...(registrationOpen !== undefined && { registrationOpen }),
@@ -101,12 +94,8 @@ export async function PATCH(
     });
 
     return NextResponse.json(sport);
-  } catch (error) {
-    console.error("Error updating sport:", error);
-    return NextResponse.json(
-      { message: "Failed to update sport" },
-      { status: 500 }
-    );
+  } catch {
+    return serverErrorResponse("Failed to update sport");
   }
 }
 
@@ -120,10 +109,7 @@ export async function DELETE(
     const session = await auth();
 
     if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json(
-        { message: "Unauthorized" },
-        { status: 401 }
-      );
+      return unauthorizedResponse();
     }
 
     // Check if sport has registrations
@@ -148,11 +134,7 @@ export async function DELETE(
     });
 
     return NextResponse.json({ message: "Sport deleted" });
-  } catch (error) {
-    console.error("Error deleting sport:", error);
-    return NextResponse.json(
-      { message: "Failed to delete sport" },
-      { status: 500 }
-    );
+  } catch {
+    return serverErrorResponse("Failed to delete sport");
   }
 }

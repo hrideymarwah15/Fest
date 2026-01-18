@@ -1,23 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { sanitizeInput, collegeNameSchema, unauthorizedResponse, badRequestResponse, serverErrorResponse } from "@/lib/security";
 
 // GET all colleges (admin)
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     const session = await auth();
 
     if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json(
-        { message: "Unauthorized" },
-        { status: 401 }
-      );
+      return unauthorizedResponse();
     }
 
     const colleges = await db.college.findMany({
       include: {
         _count: {
-          select: { 
+          select: {
             users: true,
             registrations: true,
           },
@@ -27,12 +25,8 @@ export async function GET(req: NextRequest) {
     });
 
     return NextResponse.json(colleges);
-  } catch (error) {
-    console.error("Error fetching colleges:", error);
-    return NextResponse.json(
-      { message: "Failed to fetch colleges" },
-      { status: 500 }
-    );
+  } catch {
+    return serverErrorResponse("Failed to fetch colleges");
   }
 }
 
@@ -42,42 +36,41 @@ export async function POST(req: NextRequest) {
     const session = await auth();
 
     if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json(
-        { message: "Unauthorized" },
-        { status: 401 }
-      );
+      return unauthorizedResponse();
     }
 
     const body = await req.json();
     const { name, code, address, logoUrl } = body;
 
+    // Validate and sanitize
+    const nameValidation = collegeNameSchema.safeParse(name);
+    if (!nameValidation.success) {
+      return badRequestResponse(nameValidation.error.issues[0]?.message || "Invalid college name");
+    }
+    const sanitizedName = sanitizeInput(name);
+    const sanitizedCode = sanitizeInput(code);
+    const sanitizedAddress = address ? sanitizeInput(address) : undefined;
+
     // Check if code already exists
     const existingCollege = await db.college.findUnique({
-      where: { code },
+      where: { code: sanitizedCode },
     });
 
     if (existingCollege) {
-      return NextResponse.json(
-        { message: "College with this code already exists" },
-        { status: 400 }
-      );
+      return badRequestResponse("College with this code already exists");
     }
 
     const college = await db.college.create({
       data: {
-        name,
-        code,
-        address,
+        name: sanitizedName,
+        code: sanitizedCode,
+        address: sanitizedAddress,
         logoUrl,
       },
     });
 
     return NextResponse.json(college, { status: 201 });
-  } catch (error) {
-    console.error("Error creating college:", error);
-    return NextResponse.json(
-      { message: "Failed to create college" },
-      { status: 500 }
-    );
+  } catch {
+    return serverErrorResponse("Failed to create college");
   }
 }
