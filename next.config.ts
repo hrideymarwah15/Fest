@@ -1,7 +1,13 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Ensure proper output for Vercel
+  output: "standalone",
+
+  // Experimental features
+  experimental: {
+    // Disable Turbopack for production builds if needed
+  },
 };
 
 export default nextConfig;
