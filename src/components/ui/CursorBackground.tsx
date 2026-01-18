@@ -32,9 +32,15 @@ const CursorBackground = ({
   const gradientX = useTransform(springX, [0, windowSize.width], [-20, 20]);
   const gradientY = useTransform(springY, [0, windowSize.height], [-20, 20]);
 
+  // Pre-calculate transforms for orbs
+  const orb1X = useTransform(springX, [0, windowSize.width], [-intensity * 30, intensity * 30]);
+  const orb1Y = useTransform(springY, [0, windowSize.height], [-intensity * 20, intensity * 20]);
+  const orb2X = useTransform(springX, [0, windowSize.width], [intensity * 25, -intensity * 25]);
+  const orb2Y = useTransform(springY, [0, windowSize.height], [intensity * 15, -intensity * 15]);
+
   useEffect(() => {
     setMounted(true);
-    
+
     // Set window size on client side
     if (typeof window !== 'undefined') {
       setWindowSize({
@@ -128,8 +134,8 @@ const CursorBackground = ({
         className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full blur-3xl opacity-10 pointer-events-none"
         style={{
           background: `linear-gradient(45deg, ${colors[0]}, ${colors[1]})`,
-          x: useTransform(springX, [0, windowSize.width], [-intensity * 30, intensity * 30]),
-          y: useTransform(springY, [0, windowSize.height], [-intensity * 20, intensity * 20]),
+          x: orb1X,
+          y: orb1Y,
         }}
         animate={{
           scale: [1, 1.2, 1],
@@ -146,8 +152,8 @@ const CursorBackground = ({
         className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full blur-3xl opacity-10 pointer-events-none"
         style={{
           background: `linear-gradient(135deg, ${colors[2]}, ${colors[0]})`,
-          x: useTransform(springX, [0, windowSize.width], [intensity * 25, -intensity * 25]),
-          y: useTransform(springY, [0, windowSize.height], [intensity * 15, -intensity * 15]),
+          x: orb2X,
+          y: orb2Y,
         }}
         animate={{
           scale: [1.2, 1, 1.2],
