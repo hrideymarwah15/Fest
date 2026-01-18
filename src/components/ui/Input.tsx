@@ -39,8 +39,8 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
               "focus:outline-none focus:border-[var(--accent-primary)] focus:ring-2 focus:ring-[var(--accent-primary)]/20",
               "placeholder:text-[var(--text-muted)]",
               "hover:border-[var(--text-muted)]",
-              icon && iconPosition === "left" && "pl-12",
-              icon && iconPosition === "right" && "pr-12",
+              icon && iconPosition === "left" && "!pl-14",
+              icon && iconPosition === "right" && "!pr-14",
               error && "border-red-500 focus:border-red-500 focus:ring-red-500/20 hover:border-red-400",
               props.disabled && "opacity-50 cursor-not-allowed",
               className

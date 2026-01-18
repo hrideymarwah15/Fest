@@ -68,7 +68,7 @@ export default function SportsPage() {
       const date = new Date(dateStr);
       // Check if date is valid
       if (isNaN(date.getTime())) return "TBA";
-      
+
       return date.toLocaleDateString("en-IN", {
         month: "short",
         day: "numeric",
@@ -121,7 +121,7 @@ export default function SportsPage() {
                 placeholder="Search sports..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-xl text-white placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--accent-primary)]"
+                className="w-full !pl-14 pr-4 py-3 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-xl text-white placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--accent-primary)]"
               />
             </div>
             <div className="flex gap-2">
