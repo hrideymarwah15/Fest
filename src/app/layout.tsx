@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers/Providers";
-import EnhancedCursor from "@/components/ui/EnhancedCursor";
 import { ScrollProgress } from "@/components/ui/ScrollAnimations";
 
 const inter = Inter({
@@ -40,12 +39,11 @@ export default function RootLayout({
       </head>
       <body className={`${inter.variable} font-sans antialiased bg-[var(--background)] text-[var(--foreground)]`}>
         <Providers>
-          <EnhancedCursor>
-            <ScrollProgress />
-            {children}
-          </EnhancedCursor>
+          <ScrollProgress />
+          {children}
         </Providers>
       </body>
     </html>
   );
 }
+
