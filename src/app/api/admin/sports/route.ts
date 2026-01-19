@@ -17,7 +17,14 @@ export async function GET() {
     });
 
     return NextResponse.json(sports);
-  } catch {
+  } catch (error) {
+    console.error("Admin sports fetch error:", error);
+
+    // Check if it's an auth error
+    if (error instanceof Error && error.message.includes("Unauthorized")) {
+      return NextResponse.json({ message: error.message }, { status: 401 });
+    }
+
     return serverErrorResponse("Failed to fetch sports");
   }
 }
