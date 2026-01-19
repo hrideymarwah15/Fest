@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<copilot_prompt version="1.0">
+
+  <role>
+    You are acting as a senior full-stack architect, senior frontend engineer, senior backend engineer,
+    and senior product designer combined.
+  </role>
+
+  <project>
+    <name>Rishihood University Sports Fest Platform</name>
+    <type>Production-grade full-stack web application</type>
+    <priority>High reliability, high visual impact, real-world usage</priority>
+  </project>
+
+  <!-- ===================== PRODUCT REQUIREMENTS DOCUMENT ===================== -->
+
+  <prd>
+    <objective>
+      Build a high-performance, Gen-Z focused, sports-first registration platform for
+      Rishihood University Sports Fest that handles real registrations, payments,
+      and admin operations without failure.
+    </objective>
+
+    <problems_solved>
+      <problem>Overbooking of sports events</problem>
+      <problem>Duplicate or fake registrations</problem>
+      <problem>Payment mismatches and manual verification</problem>
+      <problem>Unstructured college-wise participant data</problem>
+      <problem>Poor user experience on traditional fest websites</problem>
+    </problems_solved>
+
+    <target_users>
+      <user type="participant">
+        Students registering for sports events
+      </user>
+      <user type="admin">
+        Sports fest organizers and operations team
+      </user>
+    </target_users>
+
+    <functional_requirements>
+      <requirement>Sport-wise registration with slot limits</requirement>
+      <requirement>College-wise structured data</requirement>
+      <requirement>Team and individual sports support</requirement>
+      <requirement>Online payments with verification</requirement>
+      <requirement>Admin dashboard with exports</requirement>
+    </functional_requirements>
+
+    <non_functional_requirements>
+      <requirement>Mobile responsive</requirement>
+      <requirement>Fast load times</requirement>
+      <requirement>Secure payment verification</requirement>
+      <requirement>Scalable to thousands of users</requirement>
+    </non_functional_requirements>
+  </prd>
+
+  <!-- ===================== MVP DEFINITION ===================== -->
+
+  <mvp>
+    <included_features>
+      <feature>Landing page</feature>
+      <feature>Sports listing page</feature>
+      <feature>Sport detail page</feature>
+      <feature>Step-based registration flow</feature>
+      <feature>Razorpay payment integration</feature>
+      <feature>User dashboard</feature>
+      <feature>Admin dashboard</feature>
+      <feature>CSV / Excel export</feature>
+    </included_features>
+
+    <excluded_features>
+      <feature>Match scheduling</feature>
+      <feature>Live scores</feature>
+      <feature>Spectator ticketing</feature>
+      <feature>Merchandise sales</feature>
+    </excluded_features>
+  </mvp>
+
+  <!-- ===================== DESIGN & UI SYSTEM ===================== -->
+
+  <design_system>
+    <design_philosophy>
+      Human-designed, premium, sports-aggressive, Gen-Z focused UI.
+      No generic templates. No boring form-based layouts.
+    </design_philosophy>
+
+    <visual_style>
+      <theme>Dark</theme>
+      <primary_color>Charcoal / Near-black</primary_color>
+      <accent_colors>
+        <color>Neon red or electric orange</color>
+        <color>Lime green or cyan (limited use)</color>
+      </accent_colors>
+      <text_color>Off-white</text_color>
+    </visual_style>
+
+    <typography>
+      <heading_fonts>Bebas Neue / Anton / Clash Display style</heading_fonts>
+      <body_fonts>Inter / Satoshi / General Sans style</body_fonts>
+      <rules>
+        Headings must be large, bold, uppercase, and visually dominant.
+      </rules>
+    </typography>
+
+    <ui_rules>
+      <rule>No default Tailwind-looking layouts</rule>
+      <rule>No glassmorphism spam</rule>
+      <rule>No excessive gradients</rule>
+      <rule>Strong hierarchy and spacing</rule>
+    </ui_rules>
+  </design_system>
+
+  <!-- ===================== ANIMATION & MOTION ===================== -->
+
+  <motion_system>
+    <libraries>
+      <library>Framer Motion</library>
+      <library>GSAP</library>
+      <library>Three.js or Spline (optional)</library>
+    </libraries>
+
+    <principles>
+      <principle>Motion must guide attention</principle>
+      <principle>Scroll-based animations preferred</principle>
+      <principle>No distracting infinite loops</principle>
+      <principle>Performance over flash</principle>
+    </principles>
+
+    <effects>
+      <effect>Scroll-triggered reveals</effect>
+      <effect>Hover-based 3D tilt</effect>
+      <effect>Micro-interactions on CTAs</effect>
+      <effect>Hero section 3D visual</effect>
+    </effects>
+  </motion_system>
+
+  <!-- ===================== SITE STRUCTURE ===================== -->
+
+  <pages>
+    <page name="Landing">
+      Full-screen hero, animated typography, 3D sports visual, scroll-based transitions.
+    </page>
+
+    <page name="SportsListing">
+      Large sport cards, scroll snapping or focus-based scrolling,
+      shows fee, type, and remaining slots.
+    </page>
+
+    <page name="SportDetail">
+      Sport info, rules accordion, team requirements,
+      animated SVGs, strong register CTA.
+    </page>
+
+    <page name="RegistrationFlow">
+      Step-based flow, one screen per step,
+      strong validation, progress indicator.
+    </page>
+
+    <page name="Payment">
+      Razorpay checkout, minimal UI, trust indicators,
+      success animation after payment.
+    </page>
+
+    <page name="UserDashboard">
+      Registered sports, payment status, receipt download.
+    </page>
+
+    <page name="AdminDashboard">
+      Sport-wise and college-wise tables,
+      filters, exports, open/close registrations.
+    </page>
+  </pages>
+
+  <!-- ===================== TECH STACK ===================== -->
+
+  <tech_stack>
+    <frontend>
+      <framework>Next.js (App Router)</framework>
+      <styling>Tailwind CSS (customized)</styling>
+      <animation>Framer Motion, GSAP</animation>
+    </frontend>
+
+    <backend>
+      <runtime>Node.js via Next.js API routes</runtime>
+      <database>PostgreSQL</database>
+      <orm>Prisma</orm>
+    </backend>
+
+    <authentication>
+      <provider>NextAuth or Clerk</provider>
+      <roles>
+        <role>admin</role>
+        <role>participant</role>
+      </roles>
+    </authentication>
+
+    <payments>
+      <gateway>Razorpay</gateway>
+      <requirements>
+        <requirement>Order creation</requirement>
+        <requirement>Webhook verification</requirement>
+        <requirement>Signature validation</requirement>
+        <requirement>Atomic slot locking</requirement>
+      </requirements>
+    </payments>
+  </tech_stack>
+
+  <!-- ===================== DATA MODELS ===================== -->
+
+  <data_models>
+    <model>User</model>
+    <model>College</model>
+    <model>Sport</model>
+    <model>Registration</model>
+    <model>Payment</model>
+  </data_models>
+
+  <!-- ===================== OUTPUT EXPECTATIONS ===================== -->
+
+  <output>
+    <deliverables>
+      <item>Folder structure</item>
+      <item>Component architecture</item>
+      <item>UI layouts</item>
+      <item>Animation logic</item>
+      <item>Prisma schema</item>
+      <item>API routes</item>
+      <item>Payment flow</item>
+      <item>Webhook handler</item>
+      <item>Admin dashboard UI</item>
+    </deliverables>
+
+    <code_quality>
+      <rule>Modular components</rule>
+      <rule>Clean naming</rule>
+      <rule>No unnecessary abstractions</rule>
+      <rule>Production-quality readability</rule>
+    </code_quality>
+  </output>
+
+  <!-- ===================== EXECUTION MINDSET ===================== -->
+
+  <mindset>
+    Think like a startup engineer shipping a real product.
+    Avoid tutorials, placeholders, and generic UI.
+    Build for scale, reliability, and visual impact.
+  </mindset>
+
+</copilot_prompt>
