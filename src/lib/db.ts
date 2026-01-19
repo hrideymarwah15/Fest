@@ -8,7 +8,7 @@ const globalForPrisma = globalThis as unknown as {
   pool: Pool | undefined;
 };
 
-// Create PrismaClient for Supabase PostgreSQL
+// Create PrismaClient for Supabase PostgreSQL (lazy initialization)
 function createPrismaClient(): PrismaClient {
   const databaseUrl = process.env.DATABASE_URL;
 
@@ -41,12 +41,26 @@ function createPrismaClient(): PrismaClient {
   });
 }
 
-// Singleton pattern for Prisma Client
-export const db = globalForPrisma.prisma ?? createPrismaClient();
-
-if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = db;
+// Lazy singleton pattern - only creates client when first accessed
+function getDatabase(): PrismaClient {
+  if (!globalForPrisma.prisma) {
+    globalForPrisma.prisma = createPrismaClient();
+  }
+  return globalForPrisma.prisma;
 }
+
+// Export a proxy that lazily initializes the database connection
+// This prevents errors during module import on Vercel
+export const db = new Proxy({} as PrismaClient, {
+  get(_target, prop: keyof PrismaClient) {
+    const client = getDatabase();
+    const value = client[prop];
+    if (typeof value === 'function') {
+      return value.bind(client);
+    }
+    return value;
+  },
+});
 
 // Ensure connection is established
 export async function connectDatabase() {
