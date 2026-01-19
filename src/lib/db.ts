@@ -42,21 +42,26 @@ function createPrismaClient(): PrismaClient {
 }
 
 // Lazy singleton pattern - only creates client when first accessed
-function getDatabase(): PrismaClient {
+function getDb(): PrismaClient {
   if (!globalForPrisma.prisma) {
     globalForPrisma.prisma = createPrismaClient();
   }
   return globalForPrisma.prisma;
 }
 
-// Export a proxy that lazily initializes the database connection
-// This prevents errors during module import on Vercel
-export const db = new Proxy({} as PrismaClient, {
-  get(_target, prop: keyof PrismaClient) {
-    const client = getDatabase();
-    const value = client[prop];
-    if (typeof value === 'function') {
-      return value.bind(client);
+// Use a lazy-evaluated export via Proxy
+// This allows `db` to be used like normal but initializes on first access
+let _db: PrismaClient | undefined;
+
+export const db: PrismaClient = new Proxy({} as PrismaClient, {
+  get(_, prop) {
+    if (!_db) {
+      _db = getDb();
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const value = (_db as any)[prop];
+    if (typeof value === "function") {
+      return value.bind(_db);
     }
     return value;
   },

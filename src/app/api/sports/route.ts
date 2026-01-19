@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
-import { db } from "@/lib/db";
-import { serverErrorResponse } from "@/lib/security";
 
 export async function GET() {
   try {
+    // Dynamic import to ensure proper initialization on Vercel
+    const { db } = await import("@/lib/db");
+    
     const sports = await db.sport.findMany({
       where: { isActive: true },
       orderBy: { name: "asc" },
@@ -35,6 +36,9 @@ export async function GET() {
     return NextResponse.json(serializedSports);
   } catch (error) {
     console.error("Failed to fetch sports:", error);
-    return serverErrorResponse("Failed to fetch sports. Please check database connection.");
+    return NextResponse.json(
+      { error: "Failed to fetch sports", details: error instanceof Error ? error.message : String(error) },
+      { status: 500 }
+    );
   }
 }
