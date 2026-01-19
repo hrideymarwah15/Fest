@@ -5,6 +5,7 @@ import { Pool } from "pg";
 // Global store to prevent multiple instances in development
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
+  pool: Pool | undefined;
 };
 
 // Create PrismaClient for Supabase PostgreSQL
@@ -20,7 +21,18 @@ function createPrismaClient(): PrismaClient {
     : ["error" as const];
 
   // Create PostgreSQL connection pool for Supabase
-  const pool = new Pool({ connectionString: databaseUrl });
+  // Use existing pool in development to prevent connection exhaustion
+  const pool = globalForPrisma.pool ?? new Pool({
+    connectionString: databaseUrl,
+    max: 1, // Limit connections for serverless
+    idleTimeoutMillis: 10000,
+    connectionTimeoutMillis: 10000,
+  });
+
+  if (process.env.NODE_ENV !== "production") {
+    globalForPrisma.pool = pool;
+  }
+
   const adapter = new PrismaPg(pool);
 
   return new PrismaClient({
