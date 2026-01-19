@@ -1,7 +1,6 @@
-import { withAuth } from "next-auth/middleware";
+import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { updateSession } from "@/lib/supabase/middleware";
 
 function addSecurityHeaders(response: NextResponse, request: NextRequest) {
     response.headers.set("X-DNS-Prefetch-Control", "on");
@@ -19,7 +18,7 @@ function addSecurityHeaders(response: NextResponse, request: NextRequest) {
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
         "font-src 'self' https://fonts.gstatic.com",
         "img-src 'self' data: https: blob:",
-        "connect-src 'self' https://api.razorpay.com https://lumberjack.razorpay.com",
+        "connect-src 'self' https://api.razorpay.com https://lumberjack.razorpay.com https://*.supabase.co",
         "frame-src 'self' https://api.razorpay.com",
         cspReportUri ? `report-uri ${cspReportUri}` : "",
     ]
@@ -41,62 +40,97 @@ function addSecurityHeaders(response: NextResponse, request: NextRequest) {
     return response;
 }
 
-export default withAuth(
-    async function middleware(req) {
-        // Supabase session update
-        const sessionResponse = await updateSession(req);
-        if (sessionResponse instanceof NextResponse && sessionResponse.redirected) {
-            return sessionResponse;
-        }
+export async function middleware(request: NextRequest) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-        const token = req.nextauth.token;
-        const path = req.nextUrl.pathname;
+    // Handle preflight requests
+    if (request.method === "OPTIONS") {
+        const response = new NextResponse(null, { status: 200 });
+        return addSecurityHeaders(response, request);
+    }
 
-        // Handle preflight requests
-        if (req.method === "OPTIONS") {
-            const response = new NextResponse(null, { status: 200 });
-            return addSecurityHeaders(response, req);
-        }
+    // If Supabase env vars are missing, just pass through with security headers
+    if (!supabaseUrl || !supabaseAnonKey) {
+        const response = NextResponse.next({ request });
+        return addSecurityHeaders(response, request);
+    }
 
-        // Admin route protection
-        if (path.startsWith("/admin")) {
-            if (token?.role !== "ADMIN") {
-                return NextResponse.redirect(new URL("/dashboard", req.url));
-            }
-        }
+    let supabaseResponse = NextResponse.next({ request });
 
-        const response = NextResponse.next();
-        return addSecurityHeaders(response, req);
-    },
-    {
-        callbacks: {
-            authorized: ({ token, req }) => {
-                const path = req.nextUrl.pathname;
-                const publicRoutes = [
-                    "/",
-                    "/sports",
-                    "/auth/signin",
-                    "/auth/signup",
-                    "/auth/error",
-                    "/about",
-                    "/contact",
-                ];
-                const publicApiRoutes = [
-                    "/api/sports",
-                    "/api/colleges",
-                    "/api/auth",
-                ];
-                if (publicRoutes.some((route) => path === route || path.startsWith("/sports/"))) {
-                    return true;
-                }
-                if (publicApiRoutes.some((route) => path.startsWith(route))) {
-                    return true;
-                }
-                return !!token;
+    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+        cookies: {
+            getAll() {
+                return request.cookies.getAll();
+            },
+            setAll(cookiesToSet) {
+                cookiesToSet.forEach(({ name, value }) =>
+                    request.cookies.set(name, value)
+                );
+                supabaseResponse = NextResponse.next({ request });
+                cookiesToSet.forEach(({ name, value, options }) =>
+                    supabaseResponse.cookies.set(name, value, options)
+                );
             },
         },
+    });
+
+    const {
+        data: { user },
+    } = await supabase.auth.getUser();
+
+    const path = request.nextUrl.pathname;
+
+    // Public routes that don't require authentication
+    const publicRoutes = [
+        "/",
+        "/sports",
+        "/auth/signin",
+        "/auth/signup",
+        "/auth/error",
+        "/auth/callback",
+        "/about",
+        "/contact",
+    ];
+    const publicApiRoutes = [
+        "/api/sports",
+        "/api/colleges",
+        "/api/auth",
+    ];
+
+    const isPublicRoute = publicRoutes.some(
+        (route) => path === route || path.startsWith("/sports/")
+    );
+    const isPublicApiRoute = publicApiRoutes.some((route) => path.startsWith(route));
+
+    // Allow public routes
+    if (isPublicRoute || isPublicApiRoute) {
+        return addSecurityHeaders(supabaseResponse, request);
     }
-);
+
+    // Protected routes - redirect to signin if not authenticated
+    const protectedPaths = ["/dashboard", "/profile", "/admin", "/register"];
+    const isProtectedPath = protectedPaths.some((p) => path.startsWith(p));
+
+    if (isProtectedPath && !user) {
+        const url = request.nextUrl.clone();
+        url.pathname = "/auth/signin";
+        url.searchParams.set("callbackUrl", path);
+        return NextResponse.redirect(url);
+    }
+
+    // Auth routes - redirect to dashboard if already logged in
+    const authPaths = ["/auth/signin", "/auth/signup"];
+    const isAuthPath = authPaths.some((p) => path.startsWith(p));
+
+    if (isAuthPath && user) {
+        const url = request.nextUrl.clone();
+        url.pathname = "/dashboard";
+        return NextResponse.redirect(url);
+    }
+
+    return addSecurityHeaders(supabaseResponse, request);
+}
 
 export const config = {
     matcher: [
