@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 export async function GET() {
-  const diagnostics = {
+  const diagnostics: Record<string, any> = {
     timestamp: new Date().toISOString(),
     nodeEnv: process.env.NODE_ENV,
     hasDatabaseUrl: !!process.env.DATABASE_URL,
